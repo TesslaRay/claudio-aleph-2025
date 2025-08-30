@@ -35,6 +35,12 @@ export class PromptBuilderService {
       prompt += systemPrompt + "\n\n";
     }
 
+    const responsesPath = join(agentBasePath, "responses/intake.md");
+    const responses = this.readFileSafely(responsesPath);
+    if (responses) {
+      prompt += responses + "\n\n";
+    }
+
     return prompt;
   }
 
