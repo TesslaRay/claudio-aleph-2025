@@ -25,7 +25,7 @@ export const claudioController = {
         model: MODEL,
         metadata: {
           tags: {
-            proccesus: "nexus-v0.1.0",
+            proccesus: "intake",
           },
         },
       },

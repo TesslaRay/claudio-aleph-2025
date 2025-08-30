@@ -1,5 +1,5 @@
 {
-  "name": "backend",
+  "name": "claudio-onchain-legal-agent-backend",
   "version": "1.0.0",
   "type": "module",
   "scripts": {
