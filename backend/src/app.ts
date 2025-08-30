@@ -16,7 +16,7 @@ if (process.env.NODE_ENV !== "test") {
 app.use(
   "*",
   cors({
-    origin: ["http://localhost:3001", "https://iustomas.ai"],
+    origin: ["http://localhost:3001"],
     allowMethods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     allowHeaders: ["Content-Type", "Authorization"],
     credentials: true,
