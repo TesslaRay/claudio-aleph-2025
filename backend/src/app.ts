@@ -4,8 +4,21 @@ import { logger } from "hono/logger";
 import { cors } from "hono/cors";
 import { prettyJSON } from "hono/pretty-json";
 
+// dotenv
+import dotenv from "dotenv";
+
 // routes
 import { healthRoutes } from "./health/health.routes.js";
+import { claudioRoutes } from "./claudio/claudio.routes.js";
+
+// LLM services
+import { initializeLLMServices } from "./services/llm/llm.init.js";
+
+// load env
+dotenv.config();
+
+// Initialize services
+initializeLLMServices();
 
 const app = new Hono();
 
@@ -26,5 +39,6 @@ app.use("*", prettyJSON());
 
 // Routes
 app.route("/health", healthRoutes);
+app.route("/claudio", claudioRoutes);
 
 export default app;
