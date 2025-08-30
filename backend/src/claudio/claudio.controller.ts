@@ -12,8 +12,11 @@ import { ChatWithTomasRequest } from "./types/claudio.types";
 import { validateChatWithTomasRequest } from "./validators/tomas.validator";
 
 // firestore services
-import { conversationHistoryService } from "../services/firestore/conversation-history.service";
 import { ConversationEntry } from "../services/firestore/types/claudio.types";
+import { conversationHistoryService } from "../services/firestore/conversation-history.service";
+
+// prompt builder service
+import { promptBuilderService } from "../services/prompt-builder";
 
 // controller
 export const claudioController = {
@@ -39,7 +42,16 @@ export const claudioController = {
 
     // At this point, body is guaranteed to be defined and valid
     const validatedBody = body as ChatWithTomasRequest;
-    const { userAddress } = validatedBody;
+    const userAddress = validatedBody.userAddress?.toLowerCase();
+
+    if (!userAddress) {
+      return c.json({
+        success: true,
+        message:
+          "Hola, no me has proporcionado tu address, por lo que no puedo ayudarte. Por favor, conecta tu wallet para poder continuar.",
+        ucs: ["El cliente no proporciono su address"],
+      });
+    }
 
     // Handle caseId - create if not provided, validate if provided
     let finalCaseId = validatedBody.caseId;
@@ -75,9 +87,7 @@ export const claudioController = {
     const PROVIDER = PROVIDERS.GEMINI;
     const MODEL = MODELS.GEMINI_2_5_FLASH;
 
-    const systemPrompt = `
-      You are Claudio, a helpful assistant that can answer questions and help with tasks.
-    `;
+    const systemPrompt = await promptBuilderService.buildIntakeClaudioPrompt();
 
     const llmResponse = await llmServiceManager.generateText(
       {

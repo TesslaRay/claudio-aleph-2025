@@ -99,7 +99,7 @@ export class LangfuseService {
     const newTrace = this.createNewTrace(name, context);
 
     if (newTrace) {
-      console.log(`Created new trace for conversation: ${name}`);
+      console.log(`    Created new trace for conversation: ${name}`);
     }
 
     return newTrace;
