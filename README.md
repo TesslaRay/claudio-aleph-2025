@@ -5,8 +5,6 @@
     <img src="https://img.shields.io/badge/status-mvp-green">
 </p>
 
-# Claudio - Onchain Legal Agent for LATAM
-
 **Claudio** is an onchain legal agent that helps sign legal contracts between different jurisdictions in **LATAM**.  
 Born from **Cristian's** need, who when hiring web3 talent in Latin America from Chile, lacked clear legal contracts and protection mechanisms.
 
