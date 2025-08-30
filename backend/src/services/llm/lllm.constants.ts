@@ -1,8 +1,6 @@
 // LLM Providers
 export const PROVIDERS = {
   GEMINI: "gemini",
-  OPENAI: "openai",
-  ANTHROPIC: "anthropic",
   CEREBRAS: "cerebras",
 } as const;
 
@@ -13,14 +11,7 @@ export const MODELS = {
   // GEMINI models
   GEMINI_2_0_FLASH_EXP: "gemini-2.0-flash-exp",
   GEMINI_2_5_FLASH: "gemini-2.5-flash",
-
-  // OPENAI models
-  GPT_4_TURBO: "gpt-4-turbo",
-  O4_MINI: "o4-mini",
-
-  // ANTHROPIC models
-  CLAUDE_3_OPUS: "claude-3-opus-20240229",
-  CLAUDE_SONNET_4_20250514: "claude-sonnet-4-20250514",
+  GEMINI_2_5_PRO: "gemini-2.5-pro",
 
   // CEREBRAS models
   GPT_OSS: "openai/gpt-oss-120b",
