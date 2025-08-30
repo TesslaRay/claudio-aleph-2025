@@ -4,12 +4,7 @@
 import { usePathname } from "next/navigation";
 
 // icons
-import {
-  LuShare,
-  LuSquarePen,
-  LuPanelLeft,
-  LuBriefcase,
-} from "react-icons/lu";
+import { LuShare, LuSquarePen, LuPanelLeft, LuBriefcase } from "react-icons/lu";
 
 // shadcn/ui
 import {
@@ -33,11 +28,11 @@ import { Button } from "@/components/ui/button";
 export default function DashboardHeader({
   onNewCase,
   onShowAdvanced,
-  showCaseFactsPanel,
+  showUcsPanel,
 }: {
   onNewCase?: () => void;
   onShowAdvanced?: () => void;
-  showCaseFactsPanel?: boolean;
+  showUcsPanel?: boolean;
 }) {
   const pathname = usePathname();
 
@@ -62,9 +57,9 @@ export default function DashboardHeader({
     return "Asistente";
   };
 
-  // Check if we're in assistant view (including specific cases)
-  const isAssistantView =
-    pathname === "/assistant" || pathname.startsWith("/assistant/case/");
+  // Check if we're in agent view (including specific cases)
+  const isAgentView =
+    pathname === "/agent" || pathname.startsWith("/agent/case/");
 
   return (
     <div className="flex-shrink-0 px-4 pt-4 pb-2 border-b border-gray-300 bg-white">
@@ -74,7 +69,7 @@ export default function DashboardHeader({
         </div>
 
         <div className="flex items-center space-x-4">
-          {isAssistantView && onNewCase && (
+          {isAgentView && onNewCase && (
             <AlertDialog>
               <AlertDialogTrigger asChild>
                 <Button
@@ -106,7 +101,7 @@ export default function DashboardHeader({
             </AlertDialog>
           )}
 
-          {isAssistantView && onNewCase && (
+          {isAgentView && onNewCase && (
             <AlertDialog>
               <AlertDialogTrigger asChild>
                 <Button
@@ -181,15 +176,15 @@ export default function DashboardHeader({
           )}
 
           {/* Advanced button only in assistant view */}
-          {isAssistantView && onShowAdvanced && (
+          {isAgentView && onShowAdvanced && (
             <Button
               className="ml-2 px-4 py-1.5 rounded-[10px] font-semibold transition-all duration-200 cursor-pointer hover:scale-105 bg-black text-white flex items-center gap-2"
-              title={showCaseFactsPanel ? "Simple" : "Ver detalles"}
+              title={showUcsPanel ? "Simple" : "Ver detalles"}
               variant="default"
               onClick={onShowAdvanced}
             >
               <LuPanelLeft size={18} />
-              {showCaseFactsPanel ? "Simple" : "Ver detalles"}
+              {showUcsPanel ? "Simple" : "Ver detalles"}
             </Button>
           )}
         </div>

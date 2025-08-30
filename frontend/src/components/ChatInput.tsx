@@ -1,25 +1,28 @@
+// react
 import React, { useState } from "react";
+
+// icons
 import { LuArrowUp } from "react-icons/lu";
 
-interface SimpleChatInputProps {
+interface ChatInputProps {
   onSubmit: (message: string) => void;
   loading?: boolean;
   disabled?: boolean;
   placeholder?: string;
 }
 
-export default function SimpleChatInput({
+export default function ChatInput({
   onSubmit,
   loading = false,
   disabled = false,
   placeholder = "Escribe tu mensaje...",
-}: SimpleChatInputProps) {
+}: ChatInputProps) {
   const [input, setInput] = useState("");
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!input.trim() || loading || disabled) return;
-    
+
     onSubmit(input);
     setInput("");
   };
@@ -42,9 +45,9 @@ export default function SimpleChatInput({
 
   return (
     <form onSubmit={handleSubmit} className="w-full">
-      <div className="relative flex items-end gap-2 p-2 border border-gray-200 rounded-2xl bg-white shadow-sm">
+      <div className="relative flex items-end gap-2 p-3 border border-gray-200 rounded-2xl bg-white shadow-sm">
         <textarea
-          className="flex-1 resize-none bg-transparent px-3 py-2 text-base focus:outline-none min-h-[40px] max-h-[200px]"
+          className="flex-1 resize-none bg-transparent px-3 py-2 text-base focus:outline-none min-h-[44px] max-h-[200px]"
           placeholder={placeholder}
           rows={1}
           value={input}
@@ -52,10 +55,10 @@ export default function SimpleChatInput({
           onKeyDown={handleKeyDown}
           disabled={loading || disabled}
         />
-        
+
         <button
           type="submit"
-          className="p-2 rounded-lg bg-black text-white hover:bg-gray-800 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+          className="p-2.5 rounded-xl bg-black text-white hover:bg-gray-800 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           disabled={loading || !input.trim() || disabled}
         >
           {loading ? (

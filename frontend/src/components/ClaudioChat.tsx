@@ -11,7 +11,7 @@ import { usePathname } from "next/navigation";
 import DashboardHeader from "./DashboardHeader";
 import HowToUseClaudio from "./HowToUseClaudio";
 import ChatMessage from "./ChatMessage";
-import ChatInput from "./ui/ChatInput";
+import ChatInput from "./ChatInput";
 
 // types
 import { Message } from "@/types/claudio.types";
@@ -21,10 +21,11 @@ import { claudioService } from "@/services/claudio.service";
 
 // stores
 import { useClaudioStore } from "@/stores/claudio.store";
+import UcsPanel from "./UcsPanel";
 
 export default function ClaudioChat() {
   const pathname = usePathname();
-  const [showCaseFactsPanel, setShowCaseFactsPanel] = useState(false);
+  const [showUcsPanel, setShowUcsPanel] = useState(false);
   const [showChat, setShowChat] = useState(false);
 
   const [isHistoricalData, setIsHistoricalData] = useState(false);
@@ -33,7 +34,7 @@ export default function ClaudioChat() {
   const [disabled, setDisabled] = useState(false);
   const [input, setInput] = useState("");
 
-  const { messages, addMessage } = useClaudioStore();
+  const { messages, ucs, addMessage, setUcs } = useClaudioStore();
 
   const handleSend = async (message: string) => {
     if (!message.trim() || loading) return;
@@ -45,10 +46,12 @@ export default function ClaudioChat() {
     try {
       const data = await claudioService.chatWithClaudio(message);
 
-      console.log("data", data);
-
       if (data && data.success && data.message) {
         addMessage({ role: "agent", content: data.message });
+
+        if (data.ucs) {
+          setUcs(data.ucs);
+        }
       }
     } catch (error) {
       console.error("Error sending message:", error);
@@ -71,21 +74,21 @@ export default function ClaudioChat() {
       <DashboardHeader
         onNewCase={handleNewCase}
         onShowAdvanced={
-          pathname === "/assistant" || pathname.startsWith("/assistant/case/")
-            ? () => setShowCaseFactsPanel((prev) => !prev)
+          pathname === "/agent" || pathname.startsWith("/agent/case/")
+            ? () => setShowUcsPanel((prev) => !prev)
             : undefined
         }
-        showCaseFactsPanel={showCaseFactsPanel}
+        showUcsPanel={showUcsPanel}
       />
 
       <div
         className={`flex-1 flex min-h-0 transition-all duration-500 ease-out overflow-hidden${
-          showCaseFactsPanel ? " flex-row" : " flex-row"
+          showUcsPanel ? " flex-row" : " flex-row"
         }`}
       >
         <div
           className={`transition-all duration-500 ease-out mt-[20px] overflow-hidden flex flex-col ${
-            showCaseFactsPanel ? "w-1/2 pr-4" : "w-full"
+            showUcsPanel ? "w-1/2 pr-4" : "w-full"
           }`}
         >
           <div className="flex-1 flex flex-col overflow-hidden">
@@ -126,14 +129,28 @@ export default function ClaudioChat() {
           </div>
 
           {!shouldShowTutorial && (
-            <ChatInput
-              onSubmit={handleSend}
-              loading={loading}
-              disabled={disabled}
-              placeholder="Escribe tu mensaje..."
-            />
+            <div className="w-full max-w-3xl mx-auto mb-4 mt-4">
+              <ChatInput
+                onSubmit={handleSend}
+                loading={loading}
+                disabled={disabled}
+                placeholder="Escribe tu mensaje..."
+              />
+            </div>
           )}
         </div>
+
+        {/* Case Facts Panel (right side, 50%) */}
+        {showUcsPanel && (
+          <div
+            className="relative w-1/2 h-full flex flex-col bg-white border-l border-gray-200 shadow-lg animate-slide-in-right"
+            style={{ minWidth: 0 }}
+          >
+            <div className="flex-1 overflow-y-auto p-6">
+              <UcsPanel ucs={ucs} />
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

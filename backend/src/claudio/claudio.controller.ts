@@ -35,6 +35,7 @@ export const claudioController = {
     return c.json({
       success: true,
       message: llmResponse.content,
+      ucs: ["El cliente se llama Cristian Valdivia", "El cliente es de Chile"],
     });
   },
 };

@@ -1,19 +1,13 @@
 // types
-import { Message } from "@/types/claudio.types";
+import { ClaudioState } from "@/types/claudio.types";
 
 // zustand
 import { create } from "zustand";
 
-interface ClaudioState {
-  // Chat state
-  messages: Message[];
-
-  // Actions
-  addMessage: (message: Message) => void;
-}
-
 export const useClaudioStore = create<ClaudioState>((set) => ({
   messages: [],
+  ucs: [],
+
   addMessage: (message) =>
     set((state) => {
       // Don't allow adding messages if case is closed
@@ -23,4 +17,6 @@ export const useClaudioStore = create<ClaudioState>((set) => ({
         messages: [...state.messages, message],
       };
     }),
+
+  setUcs: (facts) => set({ ucs: facts }),
 }));
