@@ -11,8 +11,8 @@ export interface Case {
 }
 
 export interface ConversationEntry {
-  userAddress: string;
   caseId: string;
+  userAddress: string;
   userMessage: string;
   agentMessage: string;
   ucs: string[];

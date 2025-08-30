@@ -42,6 +42,27 @@ export class ConversationHistoryService {
 
     return snapshot.docs.map((doc) => doc.data() as ConversationEntry);
   }
+
+  async addConversation(
+    caseId: string,
+    userAddress: string,
+    userMessage: string,
+    agentMessage: string,
+    ucs: string[],
+    score: number
+  ) {
+    const entry: ConversationEntry = {
+      caseId,
+      userAddress,
+      userMessage,
+      agentMessage,
+      ucs,
+      score,
+      timestamp: Date.now(),
+    };
+
+    await this.firestore.collection(this.conversationCollectionName).add(entry);
+  }
 }
 
 export const conversationHistoryService = new ConversationHistoryService();

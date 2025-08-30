@@ -17,6 +17,7 @@ import { conversationHistoryService } from "../services/firestore/conversation-h
 
 // prompt builder service
 import { promptBuilderService } from "../services/prompt-builder";
+import { jsonExtractorService } from "../services/json-extractor";
 
 // controller
 export const claudioController = {
@@ -84,6 +85,28 @@ export const claudioController = {
       }
     }
 
+    // Build message with previous conversation, last ucs state and current user message
+    const lastUcs =
+      conversationHistory.length > 0
+        ? conversationHistory[conversationHistory.length - 1].ucs
+        : [];
+
+    const messageWithPreviousConversation =
+      conversationHistory.length > 0
+        ? `=== PREVIOUS CONVERSATION ===\n${conversationHistory
+            .map(
+              (turn) =>
+                `User: ${turn.userMessage}\nClaudio: ${
+                  turn.agentMessage || "[No response]"
+                }`
+            )
+            .join("\n---\n")}\n\n=== LAST UCS STATE ===\n${lastUcs
+            .map((uc) => `- ${uc}`)
+            .join("\n")}\n\n=== CURRENT MESSAGE ===\nUser: ${
+            validatedBody.message
+          }`
+        : `User: ${validatedBody.message}`;
+
     const PROVIDER = PROVIDERS.GEMINI;
     const MODEL = MODELS.GEMINI_2_5_FLASH;
 
@@ -91,7 +114,7 @@ export const claudioController = {
 
     const llmResponse = await llmServiceManager.generateText(
       {
-        prompt: validatedBody.message,
+        prompt: messageWithPreviousConversation,
         systemPrompt: systemPrompt,
         model: MODEL,
         metadata: {
@@ -103,10 +126,25 @@ export const claudioController = {
       PROVIDER
     );
 
+    const claudioIntakeJson = jsonExtractorService.extractIntakeClaudioJson(
+      llmResponse.content
+    );
+
+    // Save conversation to Firestore
+    await conversationHistoryService.addConversation(
+      finalCaseId,
+      userAddress as string,
+      validatedBody.message,
+      claudioIntakeJson.message,
+      claudioIntakeJson.ucs,
+      claudioIntakeJson.score
+    );
+
     return c.json({
       success: true,
-      message: llmResponse.content,
-      ucs: ["El cliente se llama Cristian Valdivia", "El cliente es de Chile"],
+      message: claudioIntakeJson.message,
+      ucs: claudioIntakeJson.ucs,
+      score: claudioIntakeJson.score,
     });
   },
 };
