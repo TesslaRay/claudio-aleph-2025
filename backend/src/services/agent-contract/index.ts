@@ -1,12 +1,12 @@
 // prompt builder service
-import { promptBuilderService } from "../prompt-builder";
+import { promptBuilderService } from "../prompt-builder/index.js";
 
 // llm service
-import { llmServiceManager } from "../llm/llm.service";
-import { MODELS, PROVIDERS } from "../llm/lllm.constants";
+import { llmServiceManager } from "../llm/llm.service.js";
+import { MODELS, PROVIDERS } from "../llm/lllm.constants.js";
 
 // claudio pdf service
-import { claudioPdfService } from "../pdf";
+import { claudioPdfService } from "../pdf/index.js";
 
 export class AgentLegalContractService {
   private static instance: AgentLegalContractService;

@@ -1,7 +1,7 @@
 import { createPublicClient, createWalletClient as viemCreateWalletClient, http } from 'viem';
 import { privateKeyToAccount } from 'viem/accounts';
 import { base } from 'viem/chains';
-import contractABI from './ClaudioLegalAgreement.json';
+import { contractABI } from './contractABI.js';
 
 export const CLAUDIO_LEGAL_AGREEMENT_CONTRACT_ADDRESS =
   "0x363203d21835547daebe7f8fc074a20c958b0965";

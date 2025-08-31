@@ -2,27 +2,27 @@
 import { Context } from "hono";
 
 // llm service
-import { llmServiceManager } from "../services/llm/llm.service";
-import { MODELS, PROVIDERS } from "../services/llm/lllm.constants";
+import { llmServiceManager } from "../services/llm/llm.service.js";
+import { MODELS, PROVIDERS } from "../services/llm/lllm.constants.js";
 
 // types
-import { ChatWithTomasRequest } from "./types/claudio.types";
+import { ChatWithTomasRequest } from "./types/claudio.types.js";
 
 // validators
-import { validateChatWithTomasRequest } from "./validators/tomas.validator";
+import { validateChatWithTomasRequest } from "./validators/tomas.validator.js";
 
 // firestore services
-import { ConversationEntry } from "../services/firestore/types/claudio.types";
-import { conversationHistoryService } from "../services/firestore/conversation-history.service";
+import { ConversationEntry } from "../services/firestore/types/claudio.types.js";
+import { conversationHistoryService } from "../services/firestore/conversation-history.service.js";
 
 // prompt builder service
-import { promptBuilderService } from "../services/prompt-builder";
-import { jsonExtractorService } from "../services/json-extractor";
+import { promptBuilderService } from "../services/prompt-builder/index.js";
+import { jsonExtractorService } from "../services/json-extractor/index.js";
 
 // agent contract service
-import { agentLegalContractService } from "../services/agent-contract";
-import { vaultService } from "../services/firestore/vault.service";
-import { claudioOnchainService } from "../services/claudio-onchain";
+import { agentLegalContractService } from "../services/agent-contract/index.js";
+import { vaultService } from "../services/firestore/vault.service.js";
+import { claudioOnchainService } from "../services/claudio-onchain/index.js";
 
 // controller
 export const claudioController = {

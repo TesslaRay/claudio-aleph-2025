@@ -2,7 +2,7 @@
 import { Firestore } from "@google-cloud/firestore";
 
 // types
-import { Case, ConversationEntry } from "./types/claudio.types";
+import { Case, ConversationEntry } from "./types/claudio.types.js";
 
 export class ConversationHistoryService {
   private firestore: Firestore;

@@ -124,7 +124,7 @@ export default function Home() {
 
             <Link href="/agent">
               <button className="px-4 py-1.5 rounded-[10px] font-semibold transition-opacity duration-200 bg-white text-black hover:opacity-80 cursor-pointer w-full md:w-auto">
-                Generar contrato
+                Generar contrato legal onchain
               </button>
             </Link>
           </div>

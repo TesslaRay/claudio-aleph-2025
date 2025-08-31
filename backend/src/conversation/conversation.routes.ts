@@ -9,7 +9,7 @@ const conversationRoutes = new Hono();
 // Get conversation history for a specific case
 conversationRoutes.get(
   "/get-conversation-history-and-last-extracted-facts",
-  conversationController.getConversationHistoryAndLastExtractedFacts
+  conversationController.getConversationHistoryAndLastUcsState
 );
 
 // Get last active case conversation for a specific user
@@ -19,9 +19,9 @@ conversationRoutes.get(
 );
 
 // Get generated documents for a completed case
-conversationRoutes.get(
-  "/generated-documents",
-  conversationController.getCaseGeneratedDocuments
-);
+// conversationRoutes.get(
+//   "/generated-documents",
+//   conversationController.
+// );
 
 export { conversationRoutes };

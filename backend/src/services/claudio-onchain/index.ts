@@ -3,7 +3,7 @@ import {
   publicClient,
   createWalletClient as createWallet,
   contractABI 
-} from "../../onchain";
+} from "../../onchain/index.js";
 
 export interface Agreement {
   employer: string;
@@ -107,25 +107,18 @@ export class ClaudioOnchainService {
         address: CLAUDIO_LEGAL_AGREEMENT_CONTRACT_ADDRESS as `0x${string}`,
         abi: contractABI,
         functionName: 'getAgreement',
-        args: [caseId],
+        args: [caseId as `0x${string}`],
       });
 
-      const agreement = result as {
-        employer: string;
-        coworker: string;
-        employerSigned: boolean;
-        coworkerSigned: boolean;
-        createdAt: bigint;
-        exists: boolean;
-      };
+      const [employer, coworker, employerSigned, coworkerSigned, createdAt, exists] = result as readonly [`0x${string}`, `0x${string}`, boolean, boolean, bigint, boolean];
 
       return {
-        employer: agreement.employer,
-        coworker: agreement.coworker,
-        employerSigned: agreement.employerSigned,
-        coworkerSigned: agreement.coworkerSigned,
-        createdAt: agreement.createdAt,
-        exists: agreement.exists,
+        employer,
+        coworker,
+        employerSigned,
+        coworkerSigned,
+        createdAt,
+        exists,
       };
     } catch (error) {
       console.error('Error reading agreement:', error);
@@ -146,8 +139,8 @@ export class ClaudioOnchainService {
       const result = await publicClient.readContract({
         address: CLAUDIO_LEGAL_AGREEMENT_CONTRACT_ADDRESS as `0x${string}`,
         abi: contractABI,
-        functionName: 'isCompleted',
-        args: [caseId],
+        functionName: 'isFullySigned',
+        args: [caseId as `0x${string}`],
       });
 
       return result as boolean;

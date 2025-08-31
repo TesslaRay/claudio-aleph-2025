@@ -2,7 +2,7 @@
 import { Firestore } from "@google-cloud/firestore";
 
 // types
-import { VaultFile } from "./types/vault.types";
+import { VaultFile } from "./types/vault.types.js";
 
 /**
  * Service for handling vault operations in Firestore.
