@@ -141,7 +141,8 @@ export const claudioController = {
       validatedBody.message,
       claudioIntakeJson.message,
       claudioIntakeJson.ucs,
-      claudioIntakeJson.score
+      claudioIntakeJson.score,
+      claudioIntakeJson.metadata
     );
 
     return c.json({
@@ -241,8 +242,9 @@ export const claudioController = {
         case: {
           caseId,
           userAddress: contract.userAddress,
-          conversationHistory: conversationHistory.length > 0 ? conversationHistory : [],
-        }
+          conversationHistory:
+            conversationHistory.length > 0 ? conversationHistory : [],
+        },
       });
     } catch (error) {
       console.error("Error getting contract by case ID:", error);

@@ -18,4 +18,5 @@ export interface ConversationEntry {
   ucs: string[];
   score: number;
   timestamp: number;
+  metadata?: any;
 }

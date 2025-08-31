@@ -8,7 +8,11 @@ Your response must be **only** a valid JSON object following this exact structur
 {
   "message": "",
   "ucs": [""],
-  "score": 0
+  "score": 0,
+  "metadata": {
+    "employer_address": "",
+    "coworwer_address": ""
+  }
 }
 ```
 
@@ -118,11 +122,15 @@ In **every turn**, you must include return the score of how complete your inform
 - **`0.7 - 0.89`:** You have a clear hypothesis about the required artifact and have started to probe for more detailed technical or business information.
 - **`0.9 - 1.0`:** **Saturation Point Reached.** You have all the information needed to determine the complexity, select the artifact, and formulate a precise and valuable proposal.
 
+## How to set metadata
+
+Metadata is used to only allow client address and coworker address sign the contract and is very important.
+
 ## Valid Example
 
 **User message:**
 
-> "Hola Claudio, quiero contratar a Matias de Argentina para que sea mi desarrollador frontend"
+> "Hola Claudio, quiero contratar a Matias de Argentina para que sea mi desarrollador frontend. Mi address es 0x6914c5b9ab9b49bCF84f980Ff773Bf2ae6186A6D"
 
 **Expected JSON Output:**
 
@@ -132,8 +140,12 @@ In **every turn**, you must include return the score of how complete your inform
   "ucs": [
     "OBJECTIVE: Contratar a un desarrollador frontend",
     "JURISDICTION_COWORKER: Argentina",
-    "FACT: La persona quiere contratar un desarrollador frontend para su proyecto"
-  ]
+    "FACT: La persona quiere contratar un desarrollador frontend para su proyecto",
+    "FACT: La persona es de Chile"
+  ],
+  "metadata": {
+    "employer_address": "0x6914c5b9ab9b49bCF84f980Ff773Bf2ae6186A6D"
+  }
 }
 ```
 

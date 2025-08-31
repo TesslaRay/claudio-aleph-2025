@@ -2,6 +2,11 @@ export interface IntakeClaudioResponse {
   message: string;
   ucs: string[];
   score: number;
+  metadata: {
+    employer_address?: string;
+    coworker_address?: string;
+    [key: string]: any;
+  };
 }
 
 export class JsonExtractorService {
@@ -25,6 +30,7 @@ export class JsonExtractorService {
       message: "",
       ucs: [],
       score: 0,
+      metadata: {},
     };
 
     if (!text || typeof text !== "string") {
@@ -51,6 +57,7 @@ export class JsonExtractorService {
         message: this.validateString(parsed.message, ""),
         ucs: this.validateUcsArray(parsed.ucs),
         score: this.validateScore(parsed.score),
+        metadata: this.validateMetadata(parsed.metadata),
       };
 
       return result;
@@ -104,6 +111,35 @@ export class JsonExtractorService {
   }
 
   /**
+   * Validate and normalize the metadata object
+   */
+  private validateMetadata(value: any): { employer_address?: string; coworker_address?: string; [key: string]: any } {
+    if (!value || typeof value !== 'object' || Array.isArray(value)) {
+      return {};
+    }
+
+    const result: { employer_address?: string; coworker_address?: string; [key: string]: any } = {};
+    
+    // Validate specific known fields
+    if (value.employer_address && typeof value.employer_address === 'string') {
+      result.employer_address = value.employer_address;
+    }
+    
+    if (value.coworker_address && typeof value.coworker_address === 'string') {
+      result.coworker_address = value.coworker_address;
+    }
+
+    // Include any other metadata fields
+    for (const [key, val] of Object.entries(value)) {
+      if (key !== 'employer_address' && key !== 'coworker_address') {
+        result[key] = val;
+      }
+    }
+
+    return result;
+  }
+
+  /**
    * Alternative extraction when the normal parsing fails
    */
   private fallbackExtraction(text: string): IntakeClaudioResponse {
@@ -111,6 +147,7 @@ export class JsonExtractorService {
       message: "",
       ucs: [],
       score: 0,
+      metadata: {},
     };
 
     // Try to extract the message
@@ -136,6 +173,27 @@ export class JsonExtractorService {
     const scoreMatch = text.match(/"score"\s*:\s*([\d.]+)/);
     if (scoreMatch) {
       result.score = this.validateScore(scoreMatch[1]);
+    }
+
+    // Try to extract metadata
+    const metadataMatch = text.match(/"metadata"\s*:\s*\{([^}]*)\}/);
+    if (metadataMatch) {
+      try {
+        const metadataStr = `{${metadataMatch[1]}}`;
+        const parsedMetadata = JSON.parse(metadataStr);
+        result.metadata = this.validateMetadata(parsedMetadata);
+      } catch {
+        // If metadata parsing fails, try to extract known fields manually
+        const employerMatch = text.match(/"employer_address"\s*:\s*"([^"]*)"/);
+        const coworkerMatch = text.match(/"coworker_address"\s*:\s*"([^"]*)"/);
+        
+        if (employerMatch) {
+          result.metadata.employer_address = employerMatch[1];
+        }
+        if (coworkerMatch) {
+          result.metadata.coworker_address = coworkerMatch[1];
+        }
+      }
     }
 
     return result;

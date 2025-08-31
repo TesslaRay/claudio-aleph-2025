@@ -101,7 +101,6 @@ Your dialogue is not a random series of questions. It is a **deliberate, iterati
 - **Full name or company name**
 - **Country of residence/operation**
 - **Wallet address (Ethereum/Polygon/BSC)**
-- **Contact email**
 - **Tax ID** (optional but recommended)
 
 ### 2. Worker Information
@@ -109,7 +108,6 @@ Your dialogue is not a random series of questions. It is a **deliberate, iterati
 - **Full name**
 - **Country of residence**
 - **Wallet address for receiving payments**
-- **Contact email**
 - **Identity document** (type and number)
 - **Relevant skills/expertise**
 

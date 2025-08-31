@@ -49,7 +49,8 @@ export class ConversationHistoryService {
     userMessage: string,
     agentMessage: string,
     ucs: string[],
-    score: number
+    score: number,
+    metadata?: any
   ) {
     const entry: ConversationEntry = {
       caseId,
@@ -59,6 +60,7 @@ export class ConversationHistoryService {
       ucs,
       score,
       timestamp: Date.now(),
+      metadata: metadata || {},
     };
 
     await this.firestore.collection(this.conversationCollectionName).add(entry);
