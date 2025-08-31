@@ -44,6 +44,23 @@ export class PromptBuilderService {
     return prompt;
   }
 
+  public async buildContractDrafterPrompt(): Promise<string> {
+    let prompt = "";
+
+    const systemPromptPath = join(
+      agentBasePath,
+      "system-prompts/CONTRACT_DRAFTER.md"
+    );
+
+    const systemPrompt = this.readFileSafely(systemPromptPath);
+
+    if (systemPrompt) {
+      prompt += systemPrompt + "\n\n";
+    }
+
+    return prompt;
+  }
+
   private readFileSafely(filePath: string): string | null {
     try {
       return readFileSync(filePath, "utf-8");

@@ -1,0 +1,21 @@
+meta {
+  name: draft contract
+  type: http
+  seq: 2
+}
+
+post {
+  url: {{url}}/claudio/generate-contract-for-case
+  body: json
+  auth: inherit
+}
+
+body:json {
+  {
+    "caseId": "case-0x6914c5b9ab9b49bcf84f980ff773bf2ae6186a6d-1756597402704"
+  }
+}
+
+settings {
+  encodeUrl: true
+}

@@ -19,6 +19,9 @@ import { conversationHistoryService } from "../services/firestore/conversation-h
 import { promptBuilderService } from "../services/prompt-builder";
 import { jsonExtractorService } from "../services/json-extractor";
 
+// agent contract service
+import { agentLegalContractService } from "../services/agent-contract";
+
 // controller
 export const claudioController = {
   // chat with claudio
@@ -145,6 +148,32 @@ export const claudioController = {
       message: claudioIntakeJson.message,
       ucs: claudioIntakeJson.ucs,
       score: claudioIntakeJson.score,
+    });
+  },
+
+  generateContractForCase: async (c: Context) => {
+    const body = await c.req.json();
+    const { caseId } = body;
+
+    const conversationHistory =
+      await conversationHistoryService.getConversationHistory(caseId);
+
+    if (conversationHistory.length === 0) {
+      return c.json(
+        {
+          success: false,
+          error: "Invalid caseId - case not found",
+        },
+        404
+      );
+    }
+
+    const lastUcs = conversationHistory[conversationHistory.length - 1].ucs;
+
+    const contract = await agentLegalContractService.generateContract(lastUcs);
+
+    return c.json({
+      success: true,
     });
   },
 };

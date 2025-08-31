@@ -9,4 +9,9 @@ const claudioRoutes = new Hono();
 // Basic health check
 claudioRoutes.post("/chat", claudioController.chatWithClaudio);
 
+claudioRoutes.post(
+  "/generate-contract-for-case",
+  claudioController.generateContractForCase
+);
+
 export { claudioRoutes };
