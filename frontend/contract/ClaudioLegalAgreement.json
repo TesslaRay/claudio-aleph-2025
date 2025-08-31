@@ -1,0 +1,280 @@
+[
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "_claudioAddress",
+        "type": "address"
+      }
+    ],
+    "stateMutability": "nonpayable",
+    "type": "constructor"
+  },
+  {
+    "inputs": [
+      { "internalType": "bytes32", "name": "caseId", "type": "bytes32" }
+    ],
+    "name": "AgreementAlreadyExists",
+    "type": "error"
+  },
+  {
+    "inputs": [
+      { "internalType": "bytes32", "name": "caseId", "type": "bytes32" }
+    ],
+    "name": "AgreementNotFound",
+    "type": "error"
+  },
+  {
+    "inputs": [
+      { "internalType": "bytes32", "name": "caseId", "type": "bytes32" },
+      { "internalType": "address", "name": "signer", "type": "address" }
+    ],
+    "name": "AlreadySigned",
+    "type": "error"
+  },
+  { "inputs": [], "name": "InvalidAddress", "type": "error" },
+  {
+    "inputs": [
+      { "internalType": "address", "name": "sender", "type": "address" }
+    ],
+    "name": "NotAuthorizedCreator",
+    "type": "error"
+  },
+  {
+    "inputs": [
+      { "internalType": "bytes32", "name": "caseId", "type": "bytes32" },
+      { "internalType": "address", "name": "signer", "type": "address" }
+    ],
+    "name": "NotAuthorizedSigner",
+    "type": "error"
+  },
+  { "inputs": [], "name": "SameAddress", "type": "error" },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
+        "internalType": "bytes32",
+        "name": "caseId",
+        "type": "bytes32"
+      }
+    ],
+    "name": "AgreementCompleted",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
+        "internalType": "bytes32",
+        "name": "caseId",
+        "type": "bytes32"
+      },
+      {
+        "indexed": true,
+        "internalType": "address",
+        "name": "employer",
+        "type": "address"
+      },
+      {
+        "indexed": true,
+        "internalType": "address",
+        "name": "coworker",
+        "type": "address"
+      }
+    ],
+    "name": "AgreementCreated",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
+        "internalType": "bytes32",
+        "name": "caseId",
+        "type": "bytes32"
+      },
+      {
+        "indexed": true,
+        "internalType": "address",
+        "name": "signer",
+        "type": "address"
+      }
+    ],
+    "name": "AgreementSigned",
+    "type": "event"
+  },
+  {
+    "inputs": [{ "internalType": "bytes32", "name": "", "type": "bytes32" }],
+    "name": "agreements",
+    "outputs": [
+      { "internalType": "address", "name": "employer", "type": "address" },
+      { "internalType": "address", "name": "coworker", "type": "address" },
+      { "internalType": "bool", "name": "employerSigned", "type": "bool" },
+      { "internalType": "bool", "name": "coworkerSigned", "type": "bool" },
+      { "internalType": "uint256", "name": "createdAt", "type": "uint256" },
+      { "internalType": "bool", "name": "exists", "type": "bool" }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "claudioAddress",
+    "outputs": [{ "internalType": "address", "name": "", "type": "address" }],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      { "internalType": "string", "name": "caseId", "type": "string" }
+    ],
+    "name": "computeCaseIdHash",
+    "outputs": [{ "internalType": "bytes32", "name": "", "type": "bytes32" }],
+    "stateMutability": "pure",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      { "internalType": "string", "name": "caseId", "type": "string" },
+      { "internalType": "address", "name": "employer", "type": "address" },
+      { "internalType": "address", "name": "coworker", "type": "address" }
+    ],
+    "name": "createAgreement",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      { "internalType": "bytes32", "name": "caseIdHash", "type": "bytes32" },
+      { "internalType": "address", "name": "employer", "type": "address" },
+      { "internalType": "address", "name": "coworker", "type": "address" }
+    ],
+    "name": "createAgreementWithHash",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      { "internalType": "string", "name": "caseId", "type": "string" }
+    ],
+    "name": "getAgreement",
+    "outputs": [
+      {
+        "components": [
+          { "internalType": "address", "name": "employer", "type": "address" },
+          { "internalType": "address", "name": "coworker", "type": "address" },
+          { "internalType": "bool", "name": "employerSigned", "type": "bool" },
+          { "internalType": "bool", "name": "coworkerSigned", "type": "bool" },
+          { "internalType": "uint256", "name": "createdAt", "type": "uint256" },
+          { "internalType": "bool", "name": "exists", "type": "bool" }
+        ],
+        "internalType": "struct ClaudioLegalAgreement.Agreement",
+        "name": "",
+        "type": "tuple"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      { "internalType": "bytes32", "name": "caseIdHash", "type": "bytes32" }
+    ],
+    "name": "getAgreementWithHash",
+    "outputs": [
+      {
+        "components": [
+          { "internalType": "address", "name": "employer", "type": "address" },
+          { "internalType": "address", "name": "coworker", "type": "address" },
+          { "internalType": "bool", "name": "employerSigned", "type": "bool" },
+          { "internalType": "bool", "name": "coworkerSigned", "type": "bool" },
+          { "internalType": "uint256", "name": "createdAt", "type": "uint256" },
+          { "internalType": "bool", "name": "exists", "type": "bool" }
+        ],
+        "internalType": "struct ClaudioLegalAgreement.Agreement",
+        "name": "",
+        "type": "tuple"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      { "internalType": "string", "name": "caseId", "type": "string" },
+      { "internalType": "address", "name": "signer", "type": "address" }
+    ],
+    "name": "hasSigned",
+    "outputs": [{ "internalType": "bool", "name": "", "type": "bool" }],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      { "internalType": "bytes32", "name": "", "type": "bytes32" },
+      { "internalType": "address", "name": "", "type": "address" }
+    ],
+    "name": "hasSignedMapping",
+    "outputs": [{ "internalType": "bool", "name": "", "type": "bool" }],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      { "internalType": "bytes32", "name": "caseIdHash", "type": "bytes32" },
+      { "internalType": "address", "name": "signer", "type": "address" }
+    ],
+    "name": "hasSignedWithHash",
+    "outputs": [{ "internalType": "bool", "name": "", "type": "bool" }],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      { "internalType": "string", "name": "caseId", "type": "string" }
+    ],
+    "name": "isCompleted",
+    "outputs": [{ "internalType": "bool", "name": "", "type": "bool" }],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      { "internalType": "bytes32", "name": "caseIdHash", "type": "bytes32" }
+    ],
+    "name": "isCompletedWithHash",
+    "outputs": [{ "internalType": "bool", "name": "", "type": "bool" }],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      { "internalType": "string", "name": "caseId", "type": "string" }
+    ],
+    "name": "signAgreement",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      { "internalType": "bytes32", "name": "caseIdHash", "type": "bytes32" }
+    ],
+    "name": "signAgreementWithHash",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "totalAgreements",
+    "outputs": [{ "internalType": "uint256", "name": "", "type": "uint256" }],
+    "stateMutability": "view",
+    "type": "function"
+  }
+]

@@ -13,6 +13,7 @@ import { injected } from "wagmi/connectors";
 
 // services
 import { claudioService } from "@/services/claudio.service";
+import { getAgreement, signAgreement, hasSignedAgreement } from "@/app/onchain";
 
 // utils
 import { formatAddress } from "@/utils/format-address";
@@ -66,7 +67,8 @@ export default function ContractPage() {
   const [contractData, setContractData] = useState<ContractData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [signatures, setSignatures] = useState<string[]>([]);
+  const [blockchainAgreement, setBlockchainAgreement] = useState<any>(null);
+  const [blockchainLoading, setBlockchainLoading] = useState(false);
   const [activities, setActivities] = useState<Activity[]>([]);
   const [showPdfViewer] = useState(true);
   const [signing, setSigning] = useState(false);
@@ -83,8 +85,15 @@ export default function ContractPage() {
       loadContract();
       loadActivities();
       trackView();
+      loadBlockchainData();
     }
   }, [caseId]);
+
+  useEffect(() => {
+    if (caseId && address) {
+      loadBlockchainData();
+    }
+  }, [address]);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -112,11 +121,6 @@ export default function ContractPage() {
 
       if (response.success) {
         setContractData(response);
-        // Load signatures from localStorage for demo
-        const savedSignatures = localStorage.getItem(`signatures-${caseId}`);
-        if (savedSignatures) {
-          setSignatures(JSON.parse(savedSignatures));
-        }
       } else {
         setError(response.error || "Contract not found");
       }
@@ -125,6 +129,21 @@ export default function ContractPage() {
       setError("Error loading contract");
     } finally {
       setLoading(false);
+    }
+  };
+
+  const loadBlockchainData = async () => {
+    if (!caseId) return;
+
+    try {
+      setBlockchainLoading(true);
+      const agreement = await getAgreement(caseId);
+      setBlockchainAgreement(agreement);
+    } catch (err) {
+      console.error("Error loading blockchain data:", err);
+      // If contract doesn't exist on blockchain, that's okay - it might not be created yet
+    } finally {
+      setBlockchainLoading(false);
     }
   };
 
@@ -209,19 +228,14 @@ export default function ContractPage() {
     }
 
     setSigning(true);
-    // Simulate signature process with delay
-    await new Promise((resolve) => setTimeout(resolve, 2000));
 
-    const newSignatures = [...signatures];
-    if (
-      !newSignatures.some((sig) => sig.toLowerCase() === address.toLowerCase())
-    ) {
-      newSignatures.push(address);
-      setSignatures(newSignatures);
-      localStorage.setItem(
-        `signatures-${caseId}`,
-        JSON.stringify(newSignatures)
-      );
+    try {
+      // Sign the agreement on the blockchain
+      const txHash = await signAgreement(caseId);
+      console.log("Agreement signed! Transaction hash:", txHash);
+
+      // Reload blockchain data to get updated state
+      await loadBlockchainData();
 
       // Determine role for activity
       const userRole =
@@ -234,30 +248,29 @@ export default function ContractPage() {
       addActivity(
         "signed",
         `${address.slice(0, 6)}...${address.slice(-4)} (${userRole})`,
-        "Documento firmado electrónicamente con wallet"
+        `Documento firmado en blockchain - TX: ${txHash.slice(0, 10)}...`
       );
 
-      // Check if all parties have signed
-      const updatedRequiredSigners = requiredSigners.map((signer) => ({
-        ...signer,
-        signed:
-          signer.signed ||
-          signer.address?.toLowerCase() === address.toLowerCase(),
-      }));
-
-      const allSigned = updatedRequiredSigners.every((signer) => signer.signed);
-
-      if (allSigned) {
+      // Check if contract is now completed
+      if (
+        blockchainAgreement &&
+        blockchainAgreement.employerSigned &&
+        blockchainAgreement.coworkerSigned
+      ) {
         setTimeout(() => {
           addActivity(
             "completed",
-            "Claudio System",
-            "Todas las partes han firmado. Contrato completado."
+            "Blockchain",
+            "Todas las partes han firmado en la blockchain. Contrato completado."
           );
-        }, 500);
+        }, 1000);
       }
+    } catch (error) {
+      console.error("Error signing agreement:", error);
+      alert("Error al firmar el contrato. Por favor, intenta nuevamente.");
+    } finally {
+      setSigning(false);
     }
-    setSigning(false);
   };
 
   const handleCopyLink = () => {
@@ -345,28 +358,28 @@ export default function ContractPage() {
       address.toLowerCase() ===
         contractData.contract.metadata.coworker_address?.toLowerCase());
 
-  // Get required signers from metadata
+  // Get required signers from blockchain and metadata
   const requiredSigners = contractData?.contract.metadata
     ? [
         {
-          address: contractData.contract.metadata.employer_address,
+          address:
+            blockchainAgreement?.employer ||
+            contractData.contract.metadata.employer_address,
           role: "Empleador",
-          signed: signatures.some(
-            (sig) =>
-              sig.toLowerCase() ===
-              contractData.contract.metadata?.employer_address?.toLowerCase()
-          ),
+          signed: blockchainAgreement?.employerSigned || false,
         },
         {
-          address: contractData.contract.metadata.coworker_address,
+          address:
+            blockchainAgreement?.coworker ||
+            contractData.contract.metadata.coworker_address,
           role: "Colaborador",
-          signed: signatures.some(
-            (sig) =>
-              sig.toLowerCase() ===
-              contractData.contract.metadata?.coworker_address?.toLowerCase()
-          ),
+          signed: blockchainAgreement?.coworkerSigned || false,
         },
-      ].filter((signer) => signer.address)
+      ].filter(
+        (signer) =>
+          signer.address &&
+          signer.address !== "0x0000000000000000000000000000000000000000"
+      )
     : [];
 
   const isUserSigned =
@@ -379,7 +392,9 @@ export default function ContractPage() {
     (signer) => signer.signed
   ).length;
   const totalRequiredSignatures = requiredSigners.length || 2;
-  const isCompleted = completedSignatures >= totalRequiredSignatures;
+  const isCompleted = blockchainAgreement
+    ? blockchainAgreement.employerSigned && blockchainAgreement.coworkerSigned
+    : completedSignatures >= totalRequiredSignatures;
   const completionPercentage =
     totalRequiredSignatures > 0
       ? Math.min((completedSignatures / totalRequiredSignatures) * 100, 100)
@@ -758,6 +773,13 @@ export default function ContractPage() {
                                       .employer_address
                                   }
                                 </p>
+                                {blockchainAgreement && (
+                                  <p className="text-xs mt-1">
+                                    {blockchainAgreement.employerSigned
+                                      ? "✅ Firmado en blockchain"
+                                      : "⏳ Pendiente firma"}
+                                  </p>
+                                )}
                               </div>
                               <div className="text-blue-600">💼</div>
                             </div>
@@ -777,12 +799,59 @@ export default function ContractPage() {
                                       .coworker_address
                                   }
                                 </p>
+                                {blockchainAgreement && (
+                                  <p className="text-xs mt-1">
+                                    {blockchainAgreement.coworkerSigned
+                                      ? "✅ Firmado en blockchain"
+                                      : "⏳ Pendiente firma"}
+                                  </p>
+                                )}
                               </div>
                               <div className="text-green-600">👤</div>
                             </div>
                           </div>
                         )}
                       </div>
+                    </div>
+                  )}
+
+                  {/* Blockchain Status */}
+                  {blockchainLoading ? (
+                    <div className="p-4 bg-gray-50 rounded-lg">
+                      <div className="flex items-center space-x-2">
+                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600"></div>
+                        <p className="text-sm text-gray-600">
+                          Cargando datos de blockchain...
+                        </p>
+                      </div>
+                    </div>
+                  ) : blockchainAgreement ? (
+                    <div className="p-4 bg-indigo-50 rounded-lg border border-indigo-200">
+                      <h4 className="font-semibold text-indigo-900 mb-2">
+                        Estado en Blockchain
+                      </h4>
+                      <div className="space-y-1 text-sm">
+                        <p className="text-indigo-700">
+                          ✅ Contrato encontrado en blockchain
+                        </p>
+                        <p className="text-indigo-700">
+                          📅 Creado:{" "}
+                          {new Date(
+                            Number(blockchainAgreement.createdAt) * 1000
+                          ).toLocaleDateString()}
+                        </p>
+                        <p className="text-indigo-700">
+                          📋 Estado:{" "}
+                          {isCompleted ? "Completado" : "Pendiente firmas"}
+                        </p>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="p-4 bg-yellow-50 rounded-lg border border-yellow-200">
+                      <p className="text-sm text-yellow-700">
+                        ⚠️ Contrato no encontrado en blockchain. Puede que aún
+                        no haya sido creado.
+                      </p>
                     </div>
                   )}
 
