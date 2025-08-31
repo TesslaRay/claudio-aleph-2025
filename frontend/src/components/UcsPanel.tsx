@@ -5,12 +5,13 @@ import React from "react";
 
 interface UcsPanelProps {
   ucs: string[];
+  score: number;
 }
 
 /**
  * Case Facts component to display extracted facts from the conversation
  */
-export default function UcsPanel({ ucs }: UcsPanelProps) {
+export default function UcsPanel({ ucs, score }: UcsPanelProps) {
   if (ucs.length === 0) {
     return null;
   }
@@ -25,14 +26,14 @@ export default function UcsPanel({ ucs }: UcsPanelProps) {
             </span>
           </div>
 
-          {/* {typeof lastScore === "number" && (
+          {typeof score === "number" && (
             <span
               className="ml-2 px-2 py-0.5 rounded-full bg-black text-white text-xs font-semibold min-w-[36px] text-center"
               title="Last sufficiency score"
             >
-              {Math.round(lastScore * 100)}%
+              {Math.round(score * 100)}%
             </span>
-          )} */}
+          )}
         </div>
       </div>
 
@@ -42,7 +43,7 @@ export default function UcsPanel({ ucs }: UcsPanelProps) {
             {ucs.map((fact, idx) => (
               <div key={idx}>
                 <p
-                  className={`text-[12px] text-gray-700 break-words${
+                  className={`text-[14px] text-gray-700 break-words${
                     idx < ucs.length - 1 ? " py-3" : " pt-3"
                   }`}
                 >

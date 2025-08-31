@@ -1,0 +1,19 @@
+meta {
+  name: get conversation history and ucs
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{url}}/conversation/get-conversation-history-and-last-extracted-facts?caseId=case-0x6914c5b9ab9b49bcf84f980ff773bf2ae6186a6d-1756597402704
+  body: none
+  auth: inherit
+}
+
+params:query {
+  caseId: case-0x6914c5b9ab9b49bcf84f980ff773bf2ae6186a6d-1756597402704
+}
+
+settings {
+  encodeUrl: true
+}

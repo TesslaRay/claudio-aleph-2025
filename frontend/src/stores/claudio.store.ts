@@ -7,6 +7,8 @@ import { create } from "zustand";
 export const useClaudioStore = create<ClaudioState>((set) => ({
   messages: [],
   ucs: [],
+  score: 0,
+  caseId: null,
 
   addMessage: (message) =>
     set((state) => {
@@ -19,4 +21,12 @@ export const useClaudioStore = create<ClaudioState>((set) => ({
     }),
 
   setUcs: (facts) => set({ ucs: facts }),
+
+  setMessages: (messages) => set({ messages }),
+
+  clearMessages: () => set({ messages: [], ucs: [], caseId: null }),
+
+  setCaseId: (caseId) => set({ caseId }),
+
+  setScore: (score: number) => set({ score }),
 }));

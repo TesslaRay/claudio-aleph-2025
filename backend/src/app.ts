@@ -10,6 +10,8 @@ import dotenv from "dotenv";
 // routes
 import { healthRoutes } from "./health/health.routes.js";
 import { claudioRoutes } from "./claudio/claudio.routes.js";
+import { casesRoutes } from "./cases/cases.routes.js";
+import { conversationRoutes } from "./conversation/conversation.routes.js";
 
 // LLM services
 import { initializeLLMServices } from "./services/llm/llm.init.js";
@@ -40,5 +42,7 @@ app.use("*", prettyJSON());
 // Routes
 app.route("/health", healthRoutes);
 app.route("/claudio", claudioRoutes);
+app.route("/cases", casesRoutes);
+app.route("/conversation", conversationRoutes);
 
 export default app;

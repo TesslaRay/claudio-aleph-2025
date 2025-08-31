@@ -5,5 +5,8 @@ export const apiConfig = {
     claudio: {
       chat: "/claudio/chat",
     },
+    conversation: {
+      lastActiveCase: "/conversation/last-active-case-conversation",
+    },
   },
 };

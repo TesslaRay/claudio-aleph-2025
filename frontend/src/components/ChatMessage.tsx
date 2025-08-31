@@ -12,6 +12,7 @@ interface ChatMessageProps {
   message: {
     role: "user" | "agent";
     content: string;
+    isHistorical?: boolean;
   };
   isHistoricalData: boolean;
 }
@@ -45,7 +46,7 @@ export default function ChatMessage({
           }}
         >
           {message.role === "agent" ? (
-            isHistoricalData ? (
+            (message.isHistorical || isHistoricalData) ? (
               <ReactMarkdown
                 components={{
                   // Customize markdown components to match the design
