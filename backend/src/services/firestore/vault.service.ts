@@ -124,7 +124,6 @@ export class VaultService {
     const snapshot = await this.firestore
       .collection(this.collectionName)
       .where("caseId", "==", caseId)
-      .where("tags", "array-contains", "proposal")
       .limit(1)
       .get();
 
@@ -137,6 +136,29 @@ export class VaultService {
       id: doc.id,
       ...doc.data(),
     } as VaultFile;
+  }
+
+  /**
+   * Updates the metadata for a specific case.
+   * @param caseId - The case ID
+   * @param metadata - The metadata to update
+   * @returns Promise<void>
+   */
+  async updateMetadata(caseId: string, metadata: any): Promise<void> {
+    // First, find the contract document for this case
+    const snapshot = await this.firestore
+      .collection(this.collectionName)
+      .where("caseId", "==", caseId)
+      .limit(1)
+      .get();
+
+    if (snapshot.docs.length === 0) {
+      throw new Error(`No contract found for case ${caseId}`);
+    }
+
+    // Update the found document
+    const doc = snapshot.docs[0];
+    await doc.ref.update({ metadata });
   }
 }
 

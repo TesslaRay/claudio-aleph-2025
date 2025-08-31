@@ -17,4 +17,5 @@ export interface VaultFile {
   extractedContent?: string;
   documentType?: string;
   aiConfidence?: number;
+  metadata?: any;
 }

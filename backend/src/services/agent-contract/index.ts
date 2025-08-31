@@ -54,7 +54,7 @@ export class AgentLegalContractService {
     const timestamp = new Date().toISOString().replace(/[:.]/g, "-");
     const cloudFilename = `contract-for-${caseId}-${timestamp}.pdf`;
 
-    // Generate PDF proposal using Tomas service with cover page
+    // Generate PDF contract using Claudio service with cover page
     const pdfResult = await claudioPdfService.generatePdfContract({
       userAddress: userAddress,
       caseId: caseId,

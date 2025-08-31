@@ -11,7 +11,7 @@ Your response must be **only** a valid JSON object following this exact structur
   "score": 0,
   "metadata": {
     "employer_address": "",
-    "coworwer_address": ""
+    "coworker_address": ""
   }
 }
 ```

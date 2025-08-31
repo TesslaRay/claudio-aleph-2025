@@ -28,6 +28,11 @@ interface Contract {
   size: number;
   timestamp: number;
   description?: string;
+  metadata?: {
+    employer_address?: string;
+    coworker_address?: string;
+    [key: string]: any;
+  };
 }
 
 interface CaseInfo {
@@ -102,6 +107,8 @@ export default function ContractPage() {
       setLoading(true);
       setError(null);
       const response = await claudioService.getContractByCaseId(caseId);
+
+      console.log("Contract response:", response);
 
       if (response.success) {
         setContractData(response);
@@ -196,12 +203,19 @@ export default function ContractPage() {
       return;
     }
 
+    // Check if current user is authorized to sign
+    if (!isAuthorizedUser) {
+      return;
+    }
+
     setSigning(true);
     // Simulate signature process with delay
     await new Promise((resolve) => setTimeout(resolve, 2000));
 
     const newSignatures = [...signatures];
-    if (!newSignatures.includes(address)) {
+    if (
+      !newSignatures.some((sig) => sig.toLowerCase() === address.toLowerCase())
+    ) {
       newSignatures.push(address);
       setSignatures(newSignatures);
       localStorage.setItem(
@@ -209,15 +223,31 @@ export default function ContractPage() {
         JSON.stringify(newSignatures)
       );
 
+      // Determine role for activity
+      const userRole =
+        address.toLowerCase() ===
+        contractData?.contract.metadata?.employer_address?.toLowerCase()
+          ? "Empleador"
+          : "Colaborador";
+
       // Add activity
       addActivity(
         "signed",
-        `${address.slice(0, 6)}...${address.slice(-4)}`,
+        `${address.slice(0, 6)}...${address.slice(-4)} (${userRole})`,
         "Documento firmado electrónicamente con wallet"
       );
 
-      // Check if all parties have signed (for demo, we'll say 2 signatures completes it)
-      if (newSignatures.length >= 2) {
+      // Check if all parties have signed
+      const updatedRequiredSigners = requiredSigners.map((signer) => ({
+        ...signer,
+        signed:
+          signer.signed ||
+          signer.address?.toLowerCase() === address.toLowerCase(),
+      }));
+
+      const allSigned = updatedRequiredSigners.every((signer) => signer.signed);
+
+      if (allSigned) {
         setTimeout(() => {
           addActivity(
             "completed",
@@ -306,9 +336,54 @@ export default function ContractPage() {
     }
   };
 
-  const isUserSigned = address && signatures.includes(address);
-  const isCompleted = signatures.length >= 2; // For demo purposes
-  const completionPercentage = Math.min((signatures.length / 2) * 100, 100);
+  // Check if current user is authorized (employer or coworker)
+  const isAuthorizedUser =
+    address &&
+    contractData?.contract.metadata &&
+    (address.toLowerCase() ===
+      contractData.contract.metadata.employer_address?.toLowerCase() ||
+      address.toLowerCase() ===
+        contractData.contract.metadata.coworker_address?.toLowerCase());
+
+  // Get required signers from metadata
+  const requiredSigners = contractData?.contract.metadata
+    ? [
+        {
+          address: contractData.contract.metadata.employer_address,
+          role: "Empleador",
+          signed: signatures.some(
+            (sig) =>
+              sig.toLowerCase() ===
+              contractData.contract.metadata?.employer_address?.toLowerCase()
+          ),
+        },
+        {
+          address: contractData.contract.metadata.coworker_address,
+          role: "Colaborador",
+          signed: signatures.some(
+            (sig) =>
+              sig.toLowerCase() ===
+              contractData.contract.metadata?.coworker_address?.toLowerCase()
+          ),
+        },
+      ].filter((signer) => signer.address)
+    : [];
+
+  const isUserSigned =
+    address &&
+    requiredSigners.some(
+      (signer) =>
+        signer.address?.toLowerCase() === address.toLowerCase() && signer.signed
+    );
+  const completedSignatures = requiredSigners.filter(
+    (signer) => signer.signed
+  ).length;
+  const totalRequiredSignatures = requiredSigners.length || 2;
+  const isCompleted = completedSignatures >= totalRequiredSignatures;
+  const completionPercentage =
+    totalRequiredSignatures > 0
+      ? Math.min((completedSignatures / totalRequiredSignatures) * 100, 100)
+      : 0;
 
   if (loading) {
     return (
@@ -336,6 +411,60 @@ export default function ContractPage() {
           </h1>
           <p className="text-gray-600">
             {error || "El documento solicitado no existe"}
+          </p>
+        </div>
+      </div>
+    );
+  }
+
+  // Check if user is authorized to view this contract
+  // Show access denied if user is connected but not authorized
+  if (isConnected && address && !isAuthorizedUser) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 flex items-center justify-center">
+        <div className="text-center bg-white rounded-2xl shadow-xl p-12 max-w-md">
+          <div className="text-amber-500 text-6xl mb-4">🔒</div>
+          <h1 className="text-2xl font-bold text-gray-900 mb-2">
+            Acceso no autorizado
+          </h1>
+          <p className="text-gray-600 mb-4">
+            Solo las partes autorizadas pueden acceder a este contrato.
+          </p>
+          <p className="text-sm text-gray-500">
+            Dirección actual: {formatAddress(address)}
+          </p>
+          <button
+            onClick={() => disconnect()}
+            className="mt-4 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors cursor-pointer"
+          >
+            Desconectar Wallet
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  // Show connection prompt if user is not connected
+  if (!isConnected || !address) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 flex items-center justify-center">
+        <div className="text-center bg-white rounded-2xl shadow-xl p-12 max-w-md">
+          <div className="text-blue-500 text-6xl mb-4">🔗</div>
+          <h1 className="text-2xl font-bold text-gray-900 mb-2">
+            Conecta tu Wallet
+          </h1>
+          <p className="text-gray-600 mb-4">
+            Para acceder a este contrato, conecta tu wallet para verificar tu
+            identidad.
+          </p>
+          <button
+            onClick={() => connect({ connector: injected() })}
+            className="px-6 py-3 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-lg hover:from-blue-700 hover:to-indigo-700 transition-all transform hover:scale-105 font-medium shadow-lg shadow-blue-500/25 cursor-pointer"
+          >
+            🔗 Conectar Wallet
+          </button>
+          <p className="text-xs text-gray-500 mt-3">
+            Solo las partes autorizadas pueden acceder
           </p>
         </div>
       </div>
@@ -453,7 +582,7 @@ export default function ContractPage() {
             <div className="flex items-center space-x-3">
               <button
                 onClick={handleCopyLink}
-                className="px-4 py-2 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors flex items-center space-x-2"
+                className="px-4 py-2 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors flex items-center space-x-2 cursor-pointer"
               >
                 <span>{copied ? "✅" : "🔗"}</span>
                 <span className="text-sm font-medium">
@@ -464,7 +593,7 @@ export default function ContractPage() {
                 href={contractData.contract.url}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="px-4 py-2 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors flex items-center space-x-2"
+                className="px-4 py-2 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors flex items-center space-x-2 cursor-pointer"
               >
                 <span>⬇️</span>
                 <span className="text-sm font-medium">Descargar PDF</span>
@@ -490,7 +619,8 @@ export default function ContractPage() {
             </div>
             <div className="flex items-center justify-between mt-2">
               <span className="text-xs text-gray-500">
-                {signatures.length} de 2 firmas requeridas
+                {completedSignatures} de {totalRequiredSignatures} firmas
+                requeridas
               </span>
               {isCompleted && (
                 <span className="text-xs text-green-600 font-medium">
@@ -509,7 +639,7 @@ export default function ContractPage() {
               <div className="flex space-x-1 p-1">
                 <button
                   onClick={() => setActiveTab("document")}
-                  className={`flex-1 px-4 py-2.5 rounded-lg font-medium transition-all ${
+                  className={`flex-1 px-4 py-2.5 rounded-lg font-medium transition-all cursor-pointer ${
                     activeTab === "document"
                       ? "bg-blue-100 text-blue-700"
                       : "text-gray-600 hover:text-gray-900 hover:bg-gray-100"
@@ -519,7 +649,7 @@ export default function ContractPage() {
                 </button>
                 <button
                   onClick={() => setActiveTab("details")}
-                  className={`flex-1 px-4 py-2.5 rounded-lg font-medium transition-all ${
+                  className={`flex-1 px-4 py-2.5 rounded-lg font-medium transition-all cursor-pointer ${
                     activeTab === "details"
                       ? "bg-blue-100 text-blue-700"
                       : "text-gray-600 hover:text-gray-900 hover:bg-gray-100"
@@ -529,7 +659,7 @@ export default function ContractPage() {
                 </button>
                 <button
                   onClick={() => setActiveTab("history")}
-                  className={`flex-1 px-4 py-2.5 rounded-lg font-medium transition-all ${
+                  className={`flex-1 px-4 py-2.5 rounded-lg font-medium transition-all cursor-pointer ${
                     activeTab === "history"
                       ? "bg-blue-100 text-blue-700"
                       : "text-gray-600 hover:text-gray-900 hover:bg-gray-100"
@@ -565,7 +695,7 @@ export default function ContractPage() {
                         href={contractData.contract.url}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="mt-4 px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                        className="mt-4 px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors cursor-pointer"
                       >
                         Abrir PDF en nueva pestaña
                       </a>
@@ -607,9 +737,58 @@ export default function ContractPage() {
                       </p>
                     </div>
                   </div>
+
+                  {/* Parties Information */}
+                  {contractData.contract.metadata && (
+                    <div className="space-y-4">
+                      <h4 className="font-semibold text-gray-900">
+                        Partes del Contrato
+                      </h4>
+                      <div className="grid grid-cols-1 gap-4">
+                        {contractData.contract.metadata.employer_address && (
+                          <div className="p-4 bg-blue-50 rounded-lg border border-blue-200">
+                            <div className="flex items-center justify-between">
+                              <div>
+                                <p className="text-sm text-blue-600 mb-1">
+                                  Empleador
+                                </p>
+                                <p className="font-medium text-gray-900 font-mono text-sm">
+                                  {
+                                    contractData.contract.metadata
+                                      .employer_address
+                                  }
+                                </p>
+                              </div>
+                              <div className="text-blue-600">💼</div>
+                            </div>
+                          </div>
+                        )}
+
+                        {contractData.contract.metadata.coworker_address && (
+                          <div className="p-4 bg-green-50 rounded-lg border border-green-200">
+                            <div className="flex items-center justify-between">
+                              <div>
+                                <p className="text-sm text-green-600 mb-1">
+                                  Colaborador
+                                </p>
+                                <p className="font-medium text-gray-900 font-mono text-sm">
+                                  {
+                                    contractData.contract.metadata
+                                      .coworker_address
+                                  }
+                                </p>
+                              </div>
+                              <div className="text-green-600">👤</div>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  )}
+
                   {contractData.contract.description && (
-                    <div className="p-4 bg-blue-50 rounded-lg border border-blue-200">
-                      <p className="text-sm text-blue-600 mb-1">Descripción</p>
+                    <div className="p-4 bg-gray-50 rounded-lg">
+                      <p className="text-sm text-gray-600 mb-1">Descripción</p>
                       <p className="text-gray-900">
                         {contractData.contract.description}
                       </p>
@@ -684,11 +863,10 @@ export default function ContractPage() {
                       <span className="text-3xl">✅</span>
                     </div>
                     <p className="font-semibold text-green-700">
-                      Documento firmado
+                      Ya has firmado el documento
                     </p>
                     <p className="text-sm text-gray-500 mt-1">
-                      Firmado con wallet: {address?.slice(0, 6)}...
-                      {address?.slice(-4)}
+                      Firmado con wallet: {formatAddress(address || "")}
                     </p>
                   </div>
                 ) : (
@@ -699,7 +877,7 @@ export default function ContractPage() {
                       className={`w-full px-6 py-3 rounded-lg font-medium transition-all transform hover:scale-105 ${
                         signing
                           ? "bg-gray-200 text-gray-400 cursor-not-allowed"
-                          : "bg-gradient-to-r from-blue-600 to-indigo-600 text-white hover:from-blue-700 hover:to-indigo-700 shadow-lg shadow-blue-500/25"
+                          : "bg-gradient-to-r from-blue-600 to-indigo-600 text-white hover:from-blue-700 hover:to-indigo-700 shadow-lg shadow-blue-500/25 cursor-pointer"
                       }`}
                     >
                       {signing ? (
@@ -709,10 +887,7 @@ export default function ContractPage() {
                         </span>
                       ) : (
                         <span className="flex items-center justify-center">
-                          ✍️{" "}
-                          {isConnected
-                            ? "Firmar Documento"
-                            : "Conectar y Firmar"}
+                          ✍️ Firmar Documento
                         </span>
                       )}
                     </button>
@@ -727,63 +902,70 @@ export default function ContractPage() {
               <div className="p-6">
                 <div className="mb-4">
                   <h4 className="font-medium text-gray-900 mb-1">
-                    Firmantes ({signatures.length}/2)
+                    Firmantes ({completedSignatures}/{totalRequiredSignatures})
                   </h4>
                   <p className="text-xs text-gray-500">
-                    Se requieren 2 firmas para completar
+                    Se requieren {totalRequiredSignatures} firmas para completar
                   </p>
                 </div>
 
                 <div className="space-y-3">
-                  {/* Required Signers */}
                   <div className="space-y-2">
-                    {signatures.map((sig, index) => (
+                    {requiredSigners.map((signer, index) => (
                       <div
                         key={index}
-                        className="flex items-center justify-between p-3 bg-green-50 rounded-lg border border-green-200"
+                        className={`flex items-center justify-between p-3 rounded-lg border ${
+                          signer.signed
+                            ? "bg-green-50 border-green-200"
+                            : "bg-gray-50 border-gray-200"
+                        }`}
                       >
                         <div className="flex items-center space-x-3">
-                          <div className="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center">
-                            <span className="text-sm">✓</span>
+                          <div
+                            className={`w-8 h-8 rounded-full flex items-center justify-center ${
+                              signer.signed ? "bg-green-100" : "bg-gray-200"
+                            }`}
+                          >
+                            <span className="text-sm">
+                              {signer.signed ? "✓" : "○"}
+                            </span>
                           </div>
                           <div>
-                            <p className="font-medium text-gray-900 text-sm">
-                              Parte {index + 1}
+                            <p
+                              className={`font-medium text-sm ${
+                                signer.signed
+                                  ? "text-gray-900"
+                                  : "text-gray-500"
+                              }`}
+                            >
+                              {signer.role}{" "}
+                              {signer.address?.toLowerCase() ===
+                              address?.toLowerCase()
+                                ? "(Tu)"
+                                : ""}
                             </p>
-                            <p className="text-xs font-mono text-gray-600">
-                              {sig.slice(0, 6)}...{sig.slice(-4)}
+                            <p
+                              className={`text-xs font-mono ${
+                                signer.signed
+                                  ? "text-gray-600"
+                                  : "text-gray-400"
+                              }`}
+                            >
+                              {signer.address
+                                ? `${signer.address.slice(
+                                    0,
+                                    6
+                                  )}...${signer.address.slice(-4)}`
+                                : "N/A"}
                             </p>
                           </div>
                         </div>
-                        <span className="text-xs text-green-600 font-medium">
-                          Firmado
-                        </span>
-                      </div>
-                    ))}
-
-                    {/* Pending Signers */}
-                    {Array.from({
-                      length: Math.max(0, 2 - signatures.length),
-                    }).map((_, index) => (
-                      <div
-                        key={`pending-${index}`}
-                        className="flex items-center justify-between p-3 bg-gray-50 rounded-lg border border-gray-200"
-                      >
-                        <div className="flex items-center space-x-3">
-                          <div className="w-8 h-8 bg-gray-200 rounded-full flex items-center justify-center">
-                            <span className="text-sm text-gray-400">○</span>
-                          </div>
-                          <div>
-                            <p className="font-medium text-gray-500 text-sm">
-                              Parte {signatures.length + index + 1}
-                            </p>
-                            <p className="text-xs text-gray-400">
-                              Pendiente de firma
-                            </p>
-                          </div>
-                        </div>
-                        <span className="text-xs text-gray-400 font-medium">
-                          Esperando
+                        <span
+                          className={`text-xs font-medium ${
+                            signer.signed ? "text-green-600" : "text-gray-400"
+                          }`}
+                        >
+                          {signer.signed ? "Firmado" : "Esperando"}
                         </span>
                       </div>
                     ))}

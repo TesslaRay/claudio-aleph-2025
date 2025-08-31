@@ -183,6 +183,25 @@ export const claudioController = {
       );
     }
 
+    console.log(conversationHistory[conversationHistory.length - 1].metadata);
+
+    // check if we have employer_address and coworker_address in metadata
+    if (
+      !conversationHistory[conversationHistory.length - 1].metadata
+        .employer_address ||
+      !conversationHistory[conversationHistory.length - 1].metadata
+        .coworker_address
+    ) {
+      return c.json(
+        {
+          success: false,
+          error:
+            "Invalid metadata - employer_address and coworker_address are required",
+        },
+        400
+      );
+    }
+
     const lastUcs = conversationHistory[conversationHistory.length - 1].ucs;
     const userAddress =
       conversationHistory[conversationHistory.length - 1].userAddress;
@@ -192,6 +211,16 @@ export const claudioController = {
       userAddress,
       lastUcs
     );
+
+    // update metadata with employer_address and coworker_address in vault service
+    await vaultService.updateMetadata(caseId, {
+      employer_address:
+        conversationHistory[conversationHistory.length - 1].metadata
+          .employer_address,
+      coworker_address:
+        conversationHistory[conversationHistory.length - 1].metadata
+          .coworker_address,
+    });
 
     return c.json({
       success: true,
@@ -238,6 +267,7 @@ export const claudioController = {
           size: contract.size,
           timestamp: contract.timestamp,
           description: contract.description,
+          metadata: contract.metadata,
         },
         case: {
           caseId,
