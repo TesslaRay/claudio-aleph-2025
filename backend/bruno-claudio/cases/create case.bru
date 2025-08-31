@@ -5,17 +5,14 @@ meta {
 }
 
 post {
-  url: {{url}}/api/cases
+  url: {{url}}/cases
   body: json
   auth: inherit
 }
 
 body:json {
   {
-    "caseId": "case-0x123...abc-1234567890",
-    "userId": "0x123...abc",
-    "title": "Caso de ejemplo",
-    "description": "Descripción del caso"
+    "userAddress": "0x123...abc"
   }
 }
 

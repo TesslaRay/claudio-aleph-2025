@@ -10,6 +10,8 @@ interface ClaudioState {
   ucs: string[];
   caseId: string | null;
   score: number;
+  blockchainResult: any;
+  contractUrl: string | null;
 
   // Actions
   addMessage: (message: Message) => void;
@@ -18,6 +20,8 @@ interface ClaudioState {
   clearMessages: () => void;
   setCaseId: (caseId: string | null) => void;
   setScore: (score: number) => void;
+  setBlockchainResult: (blockchainResult: any) => void;
+  setContractUrl: (contractUrl: string | null) => void;
 }
 
 export type { ClaudioState, Message };

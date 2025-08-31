@@ -15,11 +15,11 @@ export class ConversationHistoryService {
     this.casesCollectionName = "claudio-cases";
   }
 
-  async createCase(caseId: string, userAddress: string, title: string) {
+  async createCase(caseId: string, userAddress: string) {
     const now = Date.now();
     const caseData: Omit<Case, "caseId"> = {
       userAddress,
-      title,
+      title: `Case for ${userAddress}`,
       agent: "claudio",
       status: "active",
       createdAt: now,
@@ -163,6 +163,24 @@ export class ConversationHistoryService {
     const conversation = await this.getConversationHistory(caseId);
 
     return { caseId, conversation };
+  }
+
+  async updateConversationHistory(caseId: string, data: any) {
+    // First, find the last conversation entry for this case
+    const snapshot = await this.firestore
+      .collection(this.conversationCollectionName)
+      .where("caseId", "==", caseId)
+      .orderBy("timestamp", "desc")
+      .limit(1)
+      .get();
+
+    // Update the found document
+    if (snapshot.docs.length === 0) {
+      throw new Error(`No conversation history found for case ${caseId}`);
+    }
+
+    const doc = snapshot.docs[0];
+    await doc.ref.update(data);
   }
 }
 

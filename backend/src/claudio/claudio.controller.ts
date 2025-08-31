@@ -63,6 +63,8 @@ export const claudioController = {
     let finalCaseId = validatedBody.caseId;
     let conversationHistory: ConversationEntry[] = [];
 
+    console.log("finalCaseId", finalCaseId);
+
     if (!finalCaseId) {
       // Create new caseId
       finalCaseId = `case-${userAddress}-${Date.now()}`;
@@ -70,24 +72,13 @@ export const claudioController = {
       // Create the case document in Firestore
       await conversationHistoryService.createCase(
         finalCaseId,
-        userAddress as string,
-        `Case for ${userAddress}`
+        userAddress as string
       );
 
       console.log(`    Created new caseId: ${finalCaseId}`);
     } else {
       conversationHistory =
         await conversationHistoryService.getConversationHistory(finalCaseId);
-
-      if (conversationHistory.length === 0) {
-        return c.json(
-          {
-            success: false,
-            error: "Invalid caseId - case not found",
-          },
-          404
-        );
-      }
     }
 
     // Build message with previous conversation, last ucs state and current user message
@@ -224,17 +215,37 @@ export const claudioController = {
     });
 
     // Create agreement on blockchain
-    const blockchainResult = await claudioOnchainService.createAgreement(
-      caseId,
-      conversationHistory[conversationHistory.length - 1].metadata
-        .employer_address,
-      conversationHistory[conversationHistory.length - 1].metadata
-        .coworker_address
-    );
+    const blockchainResult = await claudioOnchainService
+      .getInstance()
+      .createAgreement(
+        caseId,
+        conversationHistory[conversationHistory.length - 1].metadata
+          .employer_address,
+        conversationHistory[conversationHistory.length - 1].metadata
+          .coworker_address
+      );
+
+    // Get the generated contract from vault for frontend display
+    const savedContract = await vaultService.getContractByCaseId(caseId);
+
+    // Update conversation history with blockchain result and contract url
+    await conversationHistoryService.updateConversationHistory(caseId, {
+      blockchainResult: blockchainResult,
+      contractUrl: savedContract?.url,
+    });
 
     return c.json({
       success: true,
       blockchainResult,
+      contract: savedContract
+        ? {
+            name: savedContract.name,
+            type: "contract",
+            url: savedContract.url,
+            filename: savedContract.name,
+            size: savedContract.size || 0,
+          }
+        : null,
     });
   },
 

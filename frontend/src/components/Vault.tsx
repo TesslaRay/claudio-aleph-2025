@@ -89,9 +89,9 @@ export default function Vault() {
     };
   }, [address]);
 
-  const handleFileClick = (file: VaultFile) => {
-    window.open(file.url, "_blank");
-  };
+  // const handleFileClick = (file: VaultFile) => {
+  //   window.open(file.url, "_blank");
+  // };
 
   const handleDownload = (file: VaultFile) => {
     const link = document.createElement("a");
@@ -292,74 +292,80 @@ export default function Vault() {
                       {vaultData.files
                         .filter((file) => file.tags?.includes("proposal"))
                         .map((file, index) => (
-                          <div
+                          <Link
+                            href={`/contract/${file.caseId}`}
                             key={`proposal-${index}`}
-                            className="bg-white border border-[#F0EEE7] rounded-lg p-4 hover:shadow-lg hover:-translate-y-1 transition-all duration-200 cursor-pointer"
-                            onClick={() => handleFileClick(file)}
+                            target="_blank"
                           >
-                            <div className="flex items-start justify-between mb-3">
-                              <div className="flex items-center justify-center w-12 h-12">
-                                {getFileIconComponent(file.type)}
-                              </div>
+                            <div
+                              key={`proposal-${index}`}
+                              className="bg-white border border-[#F0EEE7] rounded-lg p-4 hover:shadow-lg hover:-translate-y-1 transition-all duration-200 cursor-pointer"
+                              // onClick={() => handleFileClick(file)}
+                            >
+                              <div className="flex items-start justify-between mb-3">
+                                <div className="flex items-center justify-center w-12 h-12">
+                                  {getFileIconComponent(file.type)}
+                                </div>
 
-                              <div className="flex space-x-1">
-                                <button
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    handleDownload(file);
-                                  }}
-                                  className="p-1 text-gray-400 hover:text-gray-700 transition-colors cursor-pointer"
-                                  title="Download"
-                                >
-                                  <LuDownload className="w-4 h-4" />
-                                </button>
+                                <div className="flex space-x-1">
+                                  <button
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      handleDownload(file);
+                                    }}
+                                    className="p-1 text-gray-400 hover:text-gray-700 transition-colors cursor-pointer"
+                                    title="Download"
+                                  >
+                                    <LuDownload className="w-4 h-4" />
+                                  </button>
 
-                                {file.isPublic && (
-                                  <span className="text-xs bg-[#FBFBF9] text-gray-700 px-2 py-1 rounded flex items-center gap-1 border border-[#F0EEE7]">
-                                    <LuGlobe className="w-3 h-3" />
-                                    Público
-                                  </span>
-                                )}
-                              </div>
-                            </div>
-
-                            <div className="space-y-2">
-                              <h3 className="font-semibold text-gray-900 truncate">
-                                {file.name}
-                              </h3>
-
-                              {file.description && (
-                                <p className="text-sm text-gray-600 line-clamp-2">
-                                  {file.description}
-                                </p>
-                              )}
-
-                              <div className="flex items-center justify-between text-xs text-gray-500">
-                                <span>{formatFileSize(file.size)}</span>
-                                <span>{formatDate(file.timestamp)}</span>
-                              </div>
-
-                              {file.tags && file.tags.length > 0 && (
-                                <div className="flex flex-wrap gap-1 mt-2">
-                                  {file.tags
-                                    .slice(0, 3)
-                                    .map((tag, tagIndex) => (
-                                      <span
-                                        key={tagIndex}
-                                        className="text-xs bg-[#FBFBF9] text-gray-600 px-2 py-1 rounded border border-[#F0EEE7]"
-                                      >
-                                        {tag}
-                                      </span>
-                                    ))}
-                                  {file.tags.length > 3 && (
-                                    <span className="text-xs text-gray-400">
-                                      +{file.tags.length - 3} more
+                                  {file.isPublic && (
+                                    <span className="text-xs bg-[#FBFBF9] text-gray-700 px-2 py-1 rounded flex items-center gap-1 border border-[#F0EEE7]">
+                                      <LuGlobe className="w-3 h-3" />
+                                      Público
                                     </span>
                                   )}
                                 </div>
-                              )}
+                              </div>
+
+                              <div className="space-y-2">
+                                <h3 className="font-semibold text-gray-900 truncate">
+                                  {file.name}
+                                </h3>
+
+                                {file.description && (
+                                  <p className="text-sm text-gray-600 line-clamp-2">
+                                    {file.description}
+                                  </p>
+                                )}
+
+                                <div className="flex items-center justify-between text-xs text-gray-500">
+                                  <span>{formatFileSize(file.size)}</span>
+                                  <span>{formatDate(file.timestamp)}</span>
+                                </div>
+
+                                {file.tags && file.tags.length > 0 && (
+                                  <div className="flex flex-wrap gap-1 mt-2">
+                                    {file.tags
+                                      .slice(0, 3)
+                                      .map((tag, tagIndex) => (
+                                        <span
+                                          key={tagIndex}
+                                          className="text-xs bg-[#FBFBF9] text-gray-600 px-2 py-1 rounded border border-[#F0EEE7]"
+                                        >
+                                          {tag}
+                                        </span>
+                                      ))}
+                                    {file.tags.length > 3 && (
+                                      <span className="text-xs text-gray-400">
+                                        +{file.tags.length - 3} more
+                                      </span>
+                                    )}
+                                  </div>
+                                )}
+                              </div>
                             </div>
-                          </div>
+                          </Link>
                         ))}
                     </div>
                   </div>
@@ -378,75 +384,80 @@ export default function Vault() {
                       {vaultData.files
                         .filter((file) => file.tags?.includes("deliverable"))
                         .map((file, index) => (
-                          <div
+                          <Link
+                            href={`/contract/${file.caseId}`}
                             key={`deliverable-${index}`}
-                            className="bg-white border border-[#F0EEE7] rounded-lg p-4 hover:shadow-lg hover:-translate-y-1 transition-all duration-200 cursor-pointer"
-                            onClick={() => handleFileClick(file)}
+                            target="_blank"
                           >
-                            <div className="flex items-start justify-between mb-3">
-                              <div className="flex items-center justify-center w-12 h-12">
-                                {getFileIconComponent(file.type)}
-                              </div>
+                            <div
+                              key={`deliverable-${index}`}
+                              className="bg-white border border-[#F0EEE7] rounded-lg p-4 hover:shadow-lg hover:-translate-y-1 transition-all duration-200 cursor-pointer"
+                            >
+                              <div className="flex items-start justify-between mb-3">
+                                <div className="flex items-center justify-center w-12 h-12">
+                                  {getFileIconComponent(file.type)}
+                                </div>
 
-                              <div className="flex space-x-1">
-                                <button
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    handleDownload(file);
-                                  }}
-                                  className="p-1 text-gray-400 hover:text-gray-700 transition-colors cursor-pointer"
-                                  title="Download"
-                                >
-                                  <LuDownload className="w-4 h-4" />
-                                </button>
+                                <div className="flex space-x-1">
+                                  <button
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      handleDownload(file);
+                                    }}
+                                    className="p-1 text-gray-400 hover:text-gray-700 transition-colors cursor-pointer"
+                                    title="Download"
+                                  >
+                                    <LuDownload className="w-4 h-4" />
+                                  </button>
 
-                                {file.isPublic && (
-                                  <span className="text-xs bg-[#FBFBF9] text-gray-700 px-2 py-1 rounded flex items-center gap-1 border border-[#F0EEE7]">
-                                    <LuGlobe className="w-3 h-3" />
-                                    Public
-                                  </span>
-                                )}
-                              </div>
-                            </div>
-
-                            <div className="space-y-2">
-                              <h3 className="font-semibold text-gray-900 truncate">
-                                {file.name}
-                              </h3>
-
-                              {file.description && (
-                                <p className="text-sm text-gray-600 line-clamp-2">
-                                  {file.description}
-                                </p>
-                              )}
-
-                              <div className="flex items-center justify-between text-xs text-gray-500">
-                                <span>{formatFileSize(file.size)}</span>
-                                <span>{formatDate(file.timestamp)}</span>
-                              </div>
-
-                              {file.tags && file.tags.length > 0 && (
-                                <div className="flex flex-wrap gap-1 mt-2">
-                                  {file.tags
-                                    .slice(0, 3)
-                                    .map((tag, tagIndex) => (
-                                      <span
-                                        key={tagIndex}
-                                        className="text-xs bg-[#FBFBF9] text-gray-600 px-2 py-1 rounded border border-[#F0EEE7]"
-                                      >
-                                        {tag}
-                                      </span>
-                                    ))}
-
-                                  {file.tags.length > 3 && (
-                                    <span className="text-xs text-gray-400">
-                                      +{file.tags.length - 3} more
+                                  {file.isPublic && (
+                                    <span className="text-xs bg-[#FBFBF9] text-gray-700 px-2 py-1 rounded flex items-center gap-1 border border-[#F0EEE7]">
+                                      <LuGlobe className="w-3 h-3" />
+                                      Public
                                     </span>
                                   )}
                                 </div>
-                              )}
+                              </div>
+
+                              <div className="space-y-2">
+                                <h3 className="font-semibold text-gray-900 truncate">
+                                  {file.name}
+                                </h3>
+
+                                {file.description && (
+                                  <p className="text-sm text-gray-600 line-clamp-2">
+                                    {file.description}
+                                  </p>
+                                )}
+
+                                <div className="flex items-center justify-between text-xs text-gray-500">
+                                  <span>{formatFileSize(file.size)}</span>
+                                  <span>{formatDate(file.timestamp)}</span>
+                                </div>
+
+                                {file.tags && file.tags.length > 0 && (
+                                  <div className="flex flex-wrap gap-1 mt-2">
+                                    {file.tags
+                                      .slice(0, 3)
+                                      .map((tag, tagIndex) => (
+                                        <span
+                                          key={tagIndex}
+                                          className="text-xs bg-[#FBFBF9] text-gray-600 px-2 py-1 rounded border border-[#F0EEE7]"
+                                        >
+                                          {tag}
+                                        </span>
+                                      ))}
+
+                                    {file.tags.length > 3 && (
+                                      <span className="text-xs text-gray-400">
+                                        +{file.tags.length - 3} more
+                                      </span>
+                                    )}
+                                  </div>
+                                )}
+                              </div>
                             </div>
-                          </div>
+                          </Link>
                         ))}
                     </div>
                   </div>
@@ -471,73 +482,78 @@ export default function Vault() {
                             !file.tags?.includes("deliverable")
                         )
                         .map((file, index) => (
-                          <div
+                          <Link
+                            href={`/contract/${file.caseId}`}
                             key={`other-${index}`}
-                            className="bg-white border border-[#F0EEE7] rounded-lg p-4 hover:shadow-lg hover:-translate-y-1 transition-all duration-200 cursor-pointer"
-                            onClick={() => handleFileClick(file)}
+                            target="_blank"
                           >
-                            <div className="flex items-start justify-between mb-3">
-                              <div className="flex items-center justify-center w-12 h-12">
-                                {getFileIconComponent(file.type)}
-                              </div>
+                            <div
+                              key={`other-${index}`}
+                              className="bg-white border border-[#F0EEE7] rounded-lg p-4 hover:shadow-lg hover:-translate-y-1 transition-all duration-200 cursor-pointer"
+                            >
+                              <div className="flex items-start justify-between mb-3">
+                                <div className="flex items-center justify-center w-12 h-12">
+                                  {getFileIconComponent(file.type)}
+                                </div>
 
-                              <div className="flex space-x-1">
-                                <button
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    handleDownload(file);
-                                  }}
-                                  className="p-1 text-gray-400 hover:text-gray-700 transition-colors"
-                                  title="Download"
-                                >
-                                  <LuDownload className="w-4 h-4" />
-                                </button>
-                                {file.isPublic && (
-                                  <span className="text-xs bg-[#FBFBF9] text-gray-700 px-2 py-1 rounded flex items-center gap-1 border border-[#F0EEE7]">
-                                    <LuGlobe className="w-3 h-3" />
-                                    Public
-                                  </span>
-                                )}
-                              </div>
-                            </div>
-
-                            <div className="space-y-2">
-                              <h3 className="font-semibold text-gray-900 truncate">
-                                {file.name}
-                              </h3>
-
-                              {file.description && (
-                                <p className="text-sm text-gray-600 line-clamp-2">
-                                  {file.description}
-                                </p>
-                              )}
-
-                              <div className="flex items-center justify-between text-xs text-gray-500">
-                                <span>{formatFileSize(file.size)}</span>
-                                <span>{formatDate(file.timestamp)}</span>
-                              </div>
-
-                              {file.tags && file.tags.length > 0 && (
-                                <div className="flex flex-wrap gap-1 mt-2">
-                                  {file.tags
-                                    .slice(0, 3)
-                                    .map((tag, tagIndex) => (
-                                      <span
-                                        key={tagIndex}
-                                        className="text-xs bg-[#FBFBF9] text-gray-600 px-2 py-1 rounded border border-[#F0EEE7]"
-                                      >
-                                        {tag}
-                                      </span>
-                                    ))}
-                                  {file.tags.length > 3 && (
-                                    <span className="text-xs text-gray-400">
-                                      +{file.tags.length - 3} more
+                                <div className="flex space-x-1">
+                                  <button
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      handleDownload(file);
+                                    }}
+                                    className="p-1 text-gray-400 hover:text-gray-700 transition-colors"
+                                    title="Download"
+                                  >
+                                    <LuDownload className="w-4 h-4" />
+                                  </button>
+                                  {file.isPublic && (
+                                    <span className="text-xs bg-[#FBFBF9] text-gray-700 px-2 py-1 rounded flex items-center gap-1 border border-[#F0EEE7]">
+                                      <LuGlobe className="w-3 h-3" />
+                                      Public
                                     </span>
                                   )}
                                 </div>
-                              )}
+                              </div>
+
+                              <div className="space-y-2">
+                                <h3 className="font-semibold text-gray-900 truncate">
+                                  {file.name}
+                                </h3>
+
+                                {file.description && (
+                                  <p className="text-sm text-gray-600 line-clamp-2">
+                                    {file.description}
+                                  </p>
+                                )}
+
+                                <div className="flex items-center justify-between text-xs text-gray-500">
+                                  <span>{formatFileSize(file.size)}</span>
+                                  <span>{formatDate(file.timestamp)}</span>
+                                </div>
+
+                                {file.tags && file.tags.length > 0 && (
+                                  <div className="flex flex-wrap gap-1 mt-2">
+                                    {file.tags
+                                      .slice(0, 3)
+                                      .map((tag, tagIndex) => (
+                                        <span
+                                          key={tagIndex}
+                                          className="text-xs bg-[#FBFBF9] text-gray-600 px-2 py-1 rounded border border-[#F0EEE7]"
+                                        >
+                                          {tag}
+                                        </span>
+                                      ))}
+                                    {file.tags.length > 3 && (
+                                      <span className="text-xs text-gray-400">
+                                        +{file.tags.length - 3} more
+                                      </span>
+                                    )}
+                                  </div>
+                                )}
+                              </div>
                             </div>
-                          </div>
+                          </Link>
                         ))}
                     </div>
                   </div>

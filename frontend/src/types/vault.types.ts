@@ -11,6 +11,7 @@ export interface VaultFile {
   description?: string;
   tags?: string[];
   isPublic?: boolean;
+  caseId?: string;
 }
 
 /**

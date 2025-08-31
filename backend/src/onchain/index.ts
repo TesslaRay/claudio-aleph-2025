@@ -1,4 +1,4 @@
-import { createPublicClient, createWalletClient, http } from 'viem';
+import { createPublicClient, createWalletClient as viemCreateWalletClient, http } from 'viem';
 import { privateKeyToAccount } from 'viem/accounts';
 import { base } from 'viem/chains';
 import contractABI from './ClaudioLegalAgreement.json';
@@ -16,19 +16,34 @@ export const publicClient = createPublicClient({
 export const createWalletClient = () => {
   const privateKey = process.env.CLAUDIO_PK;
   
+  console.log('Creating wallet client...');
+  console.log('Private key exists:', !!privateKey);
+  console.log('Private key length:', privateKey?.length);
+  
   if (!privateKey) {
     throw new Error('CLAUDIO_PK environment variable is required');
   }
 
   // Add '0x' prefix if not present
   const formattedKey = privateKey.startsWith('0x') ? privateKey : `0x${privateKey}`;
-  const account = privateKeyToAccount(formattedKey as `0x${string}`);
+  console.log('Formatted key length:', formattedKey.length);
   
-  return createWalletClient({
-    account,
-    chain: base,
-    transport: http()
-  });
+  try {
+    const account = privateKeyToAccount(formattedKey as `0x${string}`);
+    console.log('Account created:', account.address);
+    
+    const walletClient = viemCreateWalletClient({
+      account,
+      chain: base,
+      transport: http()
+    });
+    
+    console.log('Wallet client created successfully');
+    return walletClient;
+  } catch (error) {
+    console.error('Error creating wallet client:', error);
+    throw error;
+  }
 };
 
 export { contractABI };

@@ -17,25 +17,33 @@ export const casesController = {
   createCase: async (c: Context) => {
     try {
       const body = await c.req.json();
-      const { caseId, userId, title, description } = body;
+      const { userAddress } = body;
 
-      if (!caseId || !userId || !title) {
+      console.log("Creating case for user:", body);
+
+      if (!userAddress) {
         return c.json(
           {
             status: "error",
-            message: "caseId, userId, and title are required",
+            message: "userAddress is required",
           },
           400
         );
       }
 
-      await conversationHistoryService.createCase(caseId, userId, title);
+      console.log("Creating case for user:", userAddress);
+
+      const userAddressToLower = userAddress.toLowerCase();
+
+      const caseId = `case-${userAddressToLower}-${Date.now()}`;
+
+      await conversationHistoryService.createCase(caseId, userAddressToLower);
 
       return c.json({
         status: "success",
-        message: "Case created successfully",
+        message: "Case created for user successfully",
         caseId,
-        userId,
+        userAddress,
         timestamp: new Date().toISOString(),
       });
     } catch (error) {

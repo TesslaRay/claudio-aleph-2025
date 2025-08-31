@@ -93,7 +93,7 @@ export default function Sidebar() {
             )}
           </Link>
 
-          <Link href="/cases">
+          {/* <Link href="/cases">
             {collapsed ? (
               <Tooltip>
                 <TooltipTrigger asChild>
@@ -118,7 +118,7 @@ export default function Sidebar() {
                 collapsed={collapsed}
               />
             )}
-          </Link>
+          </Link> */}
 
           <Link href="/vault">
             {collapsed ? (

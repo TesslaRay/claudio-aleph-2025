@@ -7,7 +7,7 @@ import { useState, useEffect, useRef } from "react";
 import { usePathname } from "next/navigation";
 
 // icons
-import { LuSquarePen, LuPanelLeft, LuBriefcase } from "react-icons/lu";
+import { LuSquarePen, LuPanelLeft } from "react-icons/lu";
 import { FiCopy, FiCheck } from "react-icons/fi";
 
 // wagmi
@@ -18,16 +18,6 @@ import { injected } from "wagmi/connectors";
 import { formatAddress } from "../utils/format-address";
 
 // shadcn/ui
-import {
-  AlertDialog,
-  AlertDialogTrigger,
-  AlertDialogContent,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogCancel,
-} from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
 
 /**
@@ -118,77 +108,15 @@ export default function DashboardHeader({
 
         <div className="flex items-center space-x-4">
           {isAgentView && onNewCase && (
-            <AlertDialog>
-              <AlertDialogTrigger asChild>
-                <Button
-                  className="ml-2 px-4 py-1.5 rounded-[10px] font-semibold transition-all duration-200 cursor-pointer hover:scale-105 bg-black text-white flex items-center gap-2"
-                  title="New Case"
-                  variant="default"
-                >
-                  <LuSquarePen size={18} />
-                  Nuevo Caso
-                </Button>
-              </AlertDialogTrigger>
-
-              <AlertDialogContent className="max-w-2xl">
-                <AlertDialogHeader>
-                  <AlertDialogTitle className="text-xl">
-                    Elige tu Asistente Legal
-                  </AlertDialogTitle>
-
-                  <AlertDialogDescription className="text-base">
-                    Selecciona el agente especializado que mejor se adapte a las
-                    necesidades de tu caso.
-                  </AlertDialogDescription>
-                </AlertDialogHeader>
-
-                <div className="grid gap-4 py-4">
-                  <div
-                    className="border rounded-lg p-4 hover:bg-gray-50 hover:border-gray-400 transition-all cursor-pointer"
-                    onClick={() => {
-                      // Here you can add logic to differentiate between agents
-                      // For now, calling the original onNewCase function
-                      onNewCase();
-                    }}
-                  >
-                    <div className="flex items-start gap-3">
-                      <div className="bg-blue-100 p-2 rounded-lg shrink-0">
-                        <LuBriefcase className="w-5 h-5 text-blue-600" />
-                      </div>
-                      <div className="flex-1">
-                        <h3 className="font-semibold text-lg text-gray-900 mb-2">
-                          Tomas
-                        </h3>
-
-                        <p className="text-sm text-gray-600 mb-2">
-                          Asociado Junior - Práctica General
-                        </p>
-
-                        <p className="text-sm text-gray-700 mb-3">
-                          Un asociado junior versátil que se especializa en nada
-                          pero sabe de todo. Perfecto para investigación y casos
-                          que requieren conocimiento legal amplio.
-                        </p>
-
-                        <div className="text-sm">
-                          <p className="text-gray-700 font-semibold mb-2">
-                            Capaz de realizar:
-                          </p>
-                          <ul className="text-gray-600 space-y-1 ml-2">
-                            <li>• Consultas generales</li>
-                            <li>• Asesoría inicial</li>
-                          </ul>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                <AlertDialogFooter>
-                  <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                </AlertDialogFooter>
-              </AlertDialogContent>
-            </AlertDialog>
+            <Button
+              className="ml-2 px-4 py-1.5 rounded-[10px] font-semibold transition-all duration-200 cursor-pointer hover:scale-105 bg-black text-white flex items-center gap-2"
+              title="New Case"
+              variant="default"
+              onClick={onNewCase}
+            >
+              <LuSquarePen size={18} />
+              Nuevo caso
+            </Button>
           )}
 
           {/* Advanced button only in assistant view */}

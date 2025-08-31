@@ -16,6 +16,8 @@ import HowToUseClaudio from "./HowToUseClaudio";
 import ChatMessage from "./ChatMessage";
 import ChatInput from "./ChatInput";
 import UcsPanel from "./UcsPanel";
+import GenerateContractButton from "./GenerateContractButton";
+import ContractGeneratedResult from "./ContractGeneratedResult";
 
 // types
 import { Message } from "@/types/claudio.types";
@@ -40,18 +42,22 @@ export default function ClaudioChat() {
   const [disabled, setDisabled] = useState(false);
   const [isLoadingHistory, setIsLoadingHistory] = useState(false);
   const [isInitialized, setIsInitialized] = useState(false);
+  const [generatedContract, setGeneratedContract] = useState<any>(null);
 
   const {
     messages,
     ucs,
     score,
     caseId,
+    contractUrl,
     addMessage,
     setUcs,
     setMessages,
     clearMessages,
     setCaseId,
     setScore,
+    setBlockchainResult,
+    setContractUrl,
   } = useClaudioStore();
 
   // Initialize after a minimum delay to prevent flash
@@ -142,6 +148,30 @@ export default function ClaudioChat() {
           if (response.score) {
             setScore(response.score);
             console.log("Setting score:", response.score);
+          }
+
+          if (
+            response.conversation[response.conversation.length - 1]
+              .blockchainResult
+          ) {
+            setBlockchainResult(
+              response.conversation[response.conversation.length - 1]
+                .blockchainResult
+            );
+            console.log(
+              "Setting blockchainResult:",
+              response.conversation[response.conversation.length - 1]
+                .blockchainResult
+            );
+          }
+
+          if (
+            response.conversation[response.conversation.length - 1].contractUrl
+          ) {
+            setContractUrl(
+              response.conversation[response.conversation.length - 1]
+                .contractUrl
+            );
           }
 
           // If there are messages, show the chat and hide tutorial
@@ -252,8 +282,60 @@ export default function ClaudioChat() {
     }
   }, [isHistoricalData, showChat, messages.length]);
 
-  const handleNewCase = () => {
-    // startNewCase();
+  const handleNewCase = async () => {
+    if (!address || !isConnected) {
+      console.error("No address or not connected");
+      return;
+    }
+
+    try {
+      // Clear current conversation and show chat directly
+      clearMessages();
+      setShowChat(true);
+      setShouldShowTutorial(false);
+
+      // Create new case in backend
+      console.log("Creating new case for address:", address);
+      const response = await claudioService.createNewCase(address);
+
+      if (
+        (response.success || response.status === "success") &&
+        response.caseId
+      ) {
+        // Set the new caseId
+        setCaseId(response.caseId);
+        console.log("New case created with ID:", response.caseId);
+
+        // Optional: Show a success message or notification
+        // You could add a toast notification here if you have one
+      } else {
+        console.error("Failed to create new case:", response);
+      }
+    } catch (error) {
+      console.error("Error creating new case:", error);
+      // Optional: Show error message to user
+    }
+  };
+
+  const handleGenerateContract = async () => {
+    if (!caseId) {
+      console.error("No caseId available for contract generation");
+      return;
+    }
+
+    try {
+      console.log("Generating contract for case:", caseId);
+      const response = await claudioService.generateContract(caseId);
+
+      if (response.success && response.contract) {
+        setGeneratedContract(response.contract);
+        console.log("Contract generated successfully:", response.contract);
+      } else {
+        console.error("Failed to generate contract:", response);
+      }
+    } catch (error) {
+      console.error("Error generating contract:", error);
+    }
   };
 
   // Loading state component
@@ -410,14 +492,38 @@ export default function ClaudioChat() {
           </div>
 
           {!shouldShowTutorial && (
-            <div className="w-full max-w-3xl mx-auto mb-4 mt-4">
-              <ChatInput
-                onSubmit={handleSend}
-                loading={loading}
-                disabled={disabled}
-                placeholder="Escribe tu mensaje..."
-              />
-            </div>
+            <>
+              {generatedContract || contractUrl ? (
+                <div className="w-full max-w-3xl mx-auto mb-4 mt-4">
+                  <ContractGeneratedResult
+                    contract={
+                      generatedContract || {
+                        name: "Contrato",
+                        type: "contract",
+                        url: contractUrl || "",
+                        filename: "contrato.pdf",
+                        size: 0,
+                      }
+                    }
+                    caseId={caseId || ""}
+                  />
+                </div>
+              ) : score && score > 0.8 ? (
+                <GenerateContractButton
+                  onGenerate={handleGenerateContract}
+                  caseId={caseId || ""}
+                />
+              ) : (
+                <div className="w-full max-w-3xl mx-auto mb-4 mt-4">
+                  <ChatInput
+                    onSubmit={handleSend}
+                    loading={loading}
+                    disabled={disabled}
+                    placeholder="Escribe tu mensaje..."
+                  />
+                </div>
+              )}
+            </>
           )}
         </div>
 

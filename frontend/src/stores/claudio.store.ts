@@ -9,6 +9,8 @@ export const useClaudioStore = create<ClaudioState>((set) => ({
   ucs: [],
   score: 0,
   caseId: null,
+  blockchainResult: null,
+  contractUrl: null,
 
   addMessage: (message) =>
     set((state) => {
@@ -29,4 +31,8 @@ export const useClaudioStore = create<ClaudioState>((set) => ({
   setCaseId: (caseId) => set({ caseId }),
 
   setScore: (score: number) => set({ score }),
+
+  setBlockchainResult: (blockchainResult) => set({ blockchainResult }),
+
+  setContractUrl: (contractUrl) => set({ contractUrl }),
 }));

@@ -20,9 +20,15 @@ export class ClaudioOnchainService {
 
   constructor() {
     try {
+      console.log('Initializing wallet client...');
+      console.log('CLAUDIO_PK exists:', !!process.env.CLAUDIO_PK);
+      console.log('CLAUDIO_PK length:', process.env.CLAUDIO_PK?.length);
       this.walletClient = createWallet();
+      console.log('Wallet client initialized successfully');
     } catch (error) {
+      console.error('Wallet client initialization failed:', error);
       console.warn('Wallet client not initialized. Private key may be missing.');
+      this.walletClient = null;
     }
   }
 
@@ -160,4 +166,7 @@ export class ClaudioOnchainService {
   }
 }
 
-export const claudioOnchainService = ClaudioOnchainService.getInstance();
+// Service instance will be created on first use to allow env variables to load
+export const claudioOnchainService = {
+  getInstance: () => ClaudioOnchainService.getInstance()
+};

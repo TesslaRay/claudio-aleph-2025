@@ -71,6 +71,52 @@ export class ClaudioApiService {
 
     return response.json();
   }
+
+  async createNewCase(userAddress: string) {
+    const response = await fetch(
+      `${this.apiUrl}${apiConfig.endpoints.cases.newCase}`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          userAddress,
+        }),
+      }
+    );
+
+    if (!response.ok) {
+      throw new Error(
+        `Failed to create new case: ${response.status}, ${response.statusText}`
+      );
+    }
+
+    return response.json();
+  }
+
+  async generateContract(caseId: string) {
+    const response = await fetch(
+      `${this.apiUrl}${apiConfig.endpoints.claudio.generateContract}`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          caseId,
+        }),
+      }
+    );
+
+    if (!response.ok) {
+      throw new Error(
+        `Failed to generate contract: ${response.status}, ${response.statusText}`
+      );
+    }
+
+    return response.json();
+  }
 }
 
 export const claudioService = new ClaudioApiService();
