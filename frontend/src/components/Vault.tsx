@@ -46,7 +46,7 @@ export default function Vault() {
   const [error, setError] = useState<string | null>(null);
 
   // Get user session
-  const { address, isConnected } = useAccount();
+  const { address } = useAccount();
 
   // Ref to prevent duplicate API calls
   const isFetchingRef = useRef(false);

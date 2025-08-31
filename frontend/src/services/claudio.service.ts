@@ -9,7 +9,11 @@ export class ClaudioApiService {
   }
 
   async chatWithClaudio(message: string, userAddress: string, caseId?: string) {
-    const body: any = {
+    const body: {
+      message: string;
+      userAddress: string;
+      caseId?: string;
+    } = {
       message,
       userAddress,
     };

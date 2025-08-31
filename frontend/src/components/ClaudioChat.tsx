@@ -42,7 +42,13 @@ export default function ClaudioChat() {
   const [disabled, setDisabled] = useState(false);
   const [isLoadingHistory, setIsLoadingHistory] = useState(false);
   const [isInitialized, setIsInitialized] = useState(false);
-  const [generatedContract, setGeneratedContract] = useState<any>(null);
+  const [generatedContract, setGeneratedContract] = useState<{
+    name: string;
+    type: string;
+    url: string;
+    filename: string;
+    size: number;
+  } | null>(null);
 
   const {
     messages,
@@ -108,7 +114,12 @@ export default function ClaudioChat() {
           // Convert conversation to messages format
           const convertedMessages: Message[] = [];
 
-          response.conversation.forEach((turn: any, index: number) => {
+          response.conversation.forEach((turn: {
+            userMessage?: string;
+            agentMessage?: string;
+            blockchainResult?: unknown;
+            contractUrl?: string;
+          }, index: number) => {
             console.log(`Turn ${index}:`, turn);
 
             if (turn.userMessage) {
@@ -194,7 +205,8 @@ export default function ClaudioChat() {
     };
 
     loadLastActiveConversation();
-  }, [address, isConnected, setMessages, setUcs, clearMessages, setCaseId]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [address, isConnected]);
 
   const handleSend = async (message: string) => {
     if (!message.trim() || loading || !address) return;

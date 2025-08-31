@@ -10,7 +10,7 @@ interface ClaudioState {
   ucs: string[];
   caseId: string | null;
   score: number;
-  blockchainResult: any;
+  blockchainResult: unknown;
   contractUrl: string | null;
 
   // Actions
@@ -20,7 +20,7 @@ interface ClaudioState {
   clearMessages: () => void;
   setCaseId: (caseId: string | null) => void;
   setScore: (score: number) => void;
-  setBlockchainResult: (blockchainResult: any) => void;
+  setBlockchainResult: (blockchainResult: unknown) => void;
   setContractUrl: (contractUrl: string | null) => void;
 }
 

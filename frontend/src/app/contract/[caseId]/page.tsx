@@ -13,7 +13,7 @@ import { injected } from "wagmi/connectors";
 
 // services
 import { claudioService } from "@/services/claudio.service";
-import { getAgreement, signAgreement, hasSignedAgreement } from "@/app/onchain";
+import { getAgreement, signAgreement } from "@/app/onchain";
 
 // utils
 import { formatAddress } from "@/utils/format-address";
@@ -32,14 +32,14 @@ interface Contract {
   metadata?: {
     employer_address?: string;
     coworker_address?: string;
-    [key: string]: any;
+    [key: string]: string | undefined;
   };
 }
 
 interface CaseInfo {
   caseId: string;
   userAddress: string;
-  conversationHistory: any[];
+  conversationHistory: unknown[];
 }
 
 interface ContractData {
@@ -67,7 +67,13 @@ export default function ContractPage() {
   const [contractData, setContractData] = useState<ContractData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [blockchainAgreement, setBlockchainAgreement] = useState<any>(null);
+  const [blockchainAgreement, setBlockchainAgreement] = useState<{
+    employer?: string;
+    coworker?: string;
+    employerSigned?: boolean;
+    coworkerSigned?: boolean;
+    createdAt?: bigint;
+  } | null>(null);
   const [blockchainLoading, setBlockchainLoading] = useState(false);
   const [activities, setActivities] = useState<Activity[]>([]);
   const [showPdfViewer] = useState(true);
@@ -87,13 +93,15 @@ export default function ContractPage() {
       trackView();
       loadBlockchainData();
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [caseId]);
 
   useEffect(() => {
     if (caseId && address) {
       loadBlockchainData();
     }
-  }, [address]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [address, caseId]);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -218,7 +226,7 @@ export default function ContractPage() {
 
   const handleSign = async () => {
     if (!address || !isConnected) {
-      await connect({ connector: injected() });
+      connect({ connector: injected() });
       return;
     }
 

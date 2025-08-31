@@ -8,10 +8,8 @@ import Link from "next/link";
 
 // icons
 import {
-  LuBookOpen,
   LuMessageCircle,
   LuFolderLock,
-  LuSettings,
   LuChevronsLeft,
   LuChevronsRight,
 } from "react-icons/lu";
