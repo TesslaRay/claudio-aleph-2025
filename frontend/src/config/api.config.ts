@@ -4,9 +4,13 @@ export const apiConfig = {
   endpoints: {
     claudio: {
       chat: "/claudio/chat",
+      getContract: "/claudio/contract",
     },
     conversation: {
       lastActiveCase: "/conversation/last-active-case-conversation",
+    },
+    vault: {
+      getUserVaultFiles: "/vault/user-vault-files",
     },
   },
 };

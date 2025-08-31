@@ -14,4 +14,9 @@ claudioRoutes.post(
   claudioController.generateContractForCase
 );
 
+claudioRoutes.get(
+  "/contract/:caseId", 
+  claudioController.getContractByCaseId
+);
+
 export { claudioRoutes };

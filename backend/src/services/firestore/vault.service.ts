@@ -18,13 +18,13 @@ export class VaultService {
 
   /**
    * Retrieves all files for a specific user from their vault, ordered by timestamp descending (newest first).
-   * @param userId - The user's identifier (string)
+   * @param userAddress - The user's identifier (string)
    * @returns Promise<VaultFile[]> - Array of vault files
    */
-  async getUserVaultFiles(userId: string): Promise<VaultFile[]> {
+  async getUserVaultFiles(userAddress: string): Promise<VaultFile[]> {
     const snapshot = await this.firestore
       .collection(this.collectionName)
-      .where("userId", "==", userId)
+      .where("userAddress", "==", userAddress)
       .orderBy("timestamp", "desc")
       .get();
 
@@ -57,13 +57,13 @@ export class VaultService {
 
   /**
    * Deletes all files for a specific user from their vault.
-   * @param userId - The user's identifier (string)
+   * @param userAddress - The user's identifier (string)
    * @returns Promise<void>
    */
-  async deleteAllUserVaultFiles(userId: string): Promise<void> {
+  async deleteAllUserVaultFiles(userAddress: string): Promise<void> {
     const snapshot = await this.firestore
       .collection(this.collectionName)
-      .where("userId", "==", userId)
+      .where("userAddress", "==", userAddress)
       .get();
 
     const batch = this.firestore.batch();
@@ -77,28 +77,66 @@ export class VaultService {
 
   /**
    * Gets the total size of all files in a user's vault.
-   * @param userId - The user's identifier (string)
+   * @param userAddress - The user's identifier (string)
    * @returns Promise<number> - Total size in MB
    */
-  async getUserVaultTotalSize(userId: string): Promise<number> {
-    const files = await this.getUserVaultFiles(userId);
+  async getUserVaultTotalSize(userAddress: string): Promise<number> {
+    const files = await this.getUserVaultFiles(userAddress);
 
     return files.reduce((total, file) => total + file.size, 0);
   }
 
   /**
    * Gets the count of files in a user's vault.
-   * @param userId - The user's identifier (string)
+   * @param userAddress - The user's identifier (string)
    * @returns Promise<number> - Number of files
    */
-  async getUserVaultFileCount(userId: string): Promise<number> {
+  async getUserVaultFileCount(userAddress: string): Promise<number> {
     const snapshot = await this.firestore
       .collection(this.collectionName)
-      .where("userId", "==", userId)
+      .where("userAddress", "==", userAddress)
       .count()
       .get();
 
     return snapshot.data().count;
+  }
+
+  /**
+   * Checks if a contract already exists for a specific case.
+   * @param caseId - The case ID
+   * @returns Promise<boolean> - True if contract exists, false otherwise
+   */
+  async checkIfContractAlreadyExists(caseId: string): Promise<boolean> {
+    const snapshot = await this.firestore
+      .collection(this.collectionName)
+      .where("caseId", "==", caseId)
+      .get();
+
+    return snapshot.docs.length > 0;
+  }
+
+  /**
+   * Gets the contract file for a specific case.
+   * @param caseId - The case ID
+   * @returns Promise<VaultFile | null> - Contract file or null if not found
+   */
+  async getContractByCaseId(caseId: string): Promise<VaultFile | null> {
+    const snapshot = await this.firestore
+      .collection(this.collectionName)
+      .where("caseId", "==", caseId)
+      .where("tags", "array-contains", "proposal")
+      .limit(1)
+      .get();
+
+    if (snapshot.docs.length === 0) {
+      return null;
+    }
+
+    const doc = snapshot.docs[0];
+    return {
+      id: doc.id,
+      ...doc.data(),
+    } as VaultFile;
   }
 }
 

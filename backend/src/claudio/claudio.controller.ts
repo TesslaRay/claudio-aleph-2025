@@ -21,6 +21,7 @@ import { jsonExtractorService } from "../services/json-extractor";
 
 // agent contract service
 import { agentLegalContractService } from "../services/agent-contract";
+import { vaultService } from "../services/firestore/vault.service";
 
 // controller
 export const claudioController = {
@@ -155,6 +156,19 @@ export const claudioController = {
     const body = await c.req.json();
     const { caseId } = body;
 
+    const checkIfContractAlreadyExists =
+      await vaultService.checkIfContractAlreadyExists(caseId);
+
+    if (checkIfContractAlreadyExists) {
+      return c.json(
+        {
+          success: false,
+          error: "Contract already exists",
+        },
+        400
+      );
+    }
+
     const conversationHistory =
       await conversationHistoryService.getConversationHistory(caseId);
 
@@ -167,8 +181,6 @@ export const claudioController = {
         404
       );
     }
-
-    console.log("conversationHistory", conversationHistory);
 
     const lastUcs = conversationHistory[conversationHistory.length - 1].ucs;
     const userAddress =
@@ -183,5 +195,65 @@ export const claudioController = {
     return c.json({
       success: true,
     });
+  },
+
+  getContractByCaseId: async (c: Context) => {
+    try {
+      const caseId = c.req.param("caseId");
+
+      if (!caseId) {
+        return c.json(
+          {
+            success: false,
+            error: "Case ID is required",
+          },
+          400
+        );
+      }
+
+      // Get contract from vault
+      const contract = await vaultService.getContractByCaseId(caseId);
+
+      if (!contract) {
+        return c.json(
+          {
+            success: false,
+            error: "Contract not found for this case",
+          },
+          404
+        );
+      }
+
+      // Get conversation history to get additional case info
+      const conversationHistory =
+        await conversationHistoryService.getConversationHistory(caseId);
+
+      return c.json({
+        success: true,
+        contract: {
+          id: contract.id,
+          name: contract.name,
+          url: contract.url,
+          size: contract.size,
+          timestamp: contract.timestamp,
+          description: contract.description,
+        },
+        case: {
+          caseId,
+          userAddress: contract.userAddress,
+          conversationHistory: conversationHistory.length > 0 ? conversationHistory : [],
+        }
+      });
+    } catch (error) {
+      console.error("Error getting contract by case ID:", error);
+
+      return c.json(
+        {
+          success: false,
+          error: "Failed to get contract",
+        },
+        500
+      );
+    }
   },
 };

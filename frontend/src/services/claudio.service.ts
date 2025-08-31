@@ -54,6 +54,23 @@ export class ClaudioApiService {
 
     return response.json();
   }
+
+  async getContractByCaseId(caseId: string) {
+    const response = await fetch(
+      `${this.apiUrl}${apiConfig.endpoints.claudio.getContract}/${caseId}`,
+      {
+        method: "GET",
+      }
+    );
+
+    if (!response.ok) {
+      throw new Error(
+        `Failed to get contract: ${response.status}, ${response.statusText}`
+      );
+    }
+
+    return response.json();
+  }
 }
 
 export const claudioService = new ClaudioApiService();

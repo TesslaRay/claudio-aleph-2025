@@ -4,6 +4,8 @@ import { promptBuilderService } from "../prompt-builder";
 // llm service
 import { llmServiceManager } from "../llm/llm.service";
 import { MODELS, PROVIDERS } from "../llm/lllm.constants";
+
+// claudio pdf service
 import { claudioPdfService } from "../pdf";
 
 export class AgentLegalContractService {
@@ -50,7 +52,7 @@ export class AgentLegalContractService {
 
     // Generate filename with timestamp for cloud storage
     const timestamp = new Date().toISOString().replace(/[:.]/g, "-");
-    const cloudFilename = `proposal-for-${0x69}-${timestamp}.pdf`;
+    const cloudFilename = `contract-for-${caseId}-${timestamp}.pdf`;
 
     // Generate PDF proposal using Tomas service with cover page
     const pdfResult = await claudioPdfService.generatePdfContract({

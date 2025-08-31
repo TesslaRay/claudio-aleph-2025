@@ -19,7 +19,12 @@ export const vaultController = {
   getUserVaultFiles: async (c: Context) => {
     const userAddress = c.req.query("userAddress");
 
-    const validationResult = validateUserAddressInQueryParams(c, userAddress);
+    const userAddressToLower = userAddress?.toLowerCase();
+
+    const validationResult = validateUserAddressInQueryParams(
+      c,
+      userAddressToLower
+    );
 
     if (!validationResult.isValid) {
       return validationResult.response;
@@ -27,15 +32,15 @@ export const vaultController = {
 
     try {
       const vaultFiles = await vaultService.getUserVaultFiles(
-        validationResult.userAddress
+        userAddressToLower as string
       );
 
       const totalSize = await vaultService.getUserVaultTotalSize(
-        validationResult.userAddress
+        userAddressToLower as string
       );
 
       const fileCount = await vaultService.getUserVaultFileCount(
-        validationResult.userAddress
+        userAddressToLower as string
       );
 
       return c.json({

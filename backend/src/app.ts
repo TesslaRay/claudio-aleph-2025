@@ -12,6 +12,7 @@ import { healthRoutes } from "./health/health.routes.js";
 import { claudioRoutes } from "./claudio/claudio.routes.js";
 import { casesRoutes } from "./cases/cases.routes.js";
 import { conversationRoutes } from "./conversation/conversation.routes.js";
+import { vaultRoutes } from "./vault/vault.routes.js";
 
 // LLM services
 import { initializeLLMServices } from "./services/llm/llm.init.js";
@@ -44,5 +45,6 @@ app.route("/health", healthRoutes);
 app.route("/claudio", claudioRoutes);
 app.route("/cases", casesRoutes);
 app.route("/conversation", conversationRoutes);
+app.route("/vault", vaultRoutes);
 
 export default app;
