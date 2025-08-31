@@ -168,9 +168,17 @@ export const claudioController = {
       );
     }
 
-    const lastUcs = conversationHistory[conversationHistory.length - 1].ucs;
+    console.log("conversationHistory", conversationHistory);
 
-    const contract = await agentLegalContractService.generateContract(lastUcs);
+    const lastUcs = conversationHistory[conversationHistory.length - 1].ucs;
+    const userAddress =
+      conversationHistory[conversationHistory.length - 1].userAddress;
+
+    const contract = await agentLegalContractService.generateContract(
+      caseId,
+      userAddress,
+      lastUcs
+    );
 
     return c.json({
       success: true,

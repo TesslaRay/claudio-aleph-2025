@@ -4,6 +4,7 @@ import { promptBuilderService } from "../prompt-builder";
 // llm service
 import { llmServiceManager } from "../llm/llm.service";
 import { MODELS, PROVIDERS } from "../llm/lllm.constants";
+import { claudioPdfService } from "../pdf";
 
 export class AgentLegalContractService {
   private static instance: AgentLegalContractService;
@@ -18,7 +19,11 @@ export class AgentLegalContractService {
     return AgentLegalContractService.instance;
   }
 
-  public async generateContract(ucs: string[]): Promise<void> {
+  public async generateContract(
+    caseId: string,
+    userAddress: string,
+    ucs: string[]
+  ): Promise<void> {
     const ucsComplete = `=== Información recopilada ===\n${ucs
       .map((uc) => `- ${uc}`)
       .join("\n")}`;
@@ -43,7 +48,19 @@ export class AgentLegalContractService {
       PROVIDER
     );
 
-    console.log(llmResponse.content);
+    // Generate filename with timestamp for cloud storage
+    const timestamp = new Date().toISOString().replace(/[:.]/g, "-");
+    const cloudFilename = `proposal-for-${0x69}-${timestamp}.pdf`;
+
+    // Generate PDF proposal using Tomas service with cover page
+    const pdfResult = await claudioPdfService.generatePdfContract({
+      userAddress: userAddress,
+      caseId: caseId,
+      language: "es",
+      content: llmResponse.content,
+      filename: cloudFilename,
+      uploadToCloud: true,
+    });
   }
 }
 
