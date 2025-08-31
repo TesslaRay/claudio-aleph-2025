@@ -22,6 +22,7 @@ import { jsonExtractorService } from "../services/json-extractor";
 // agent contract service
 import { agentLegalContractService } from "../services/agent-contract";
 import { vaultService } from "../services/firestore/vault.service";
+import { claudioOnchainService } from "../services/claudio-onchain";
 
 // controller
 export const claudioController = {
@@ -222,8 +223,18 @@ export const claudioController = {
           .coworker_address,
     });
 
+    // Create agreement on blockchain
+    const blockchainResult = await claudioOnchainService.createAgreement(
+      caseId,
+      conversationHistory[conversationHistory.length - 1].metadata
+        .employer_address,
+      conversationHistory[conversationHistory.length - 1].metadata
+        .coworker_address
+    );
+
     return c.json({
       success: true,
+      blockchainResult,
     });
   },
 

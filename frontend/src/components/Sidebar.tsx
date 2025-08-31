@@ -66,7 +66,7 @@ export default function Sidebar() {
         </div>
 
         <nav className="flex flex-col gap-1">
-          <Link href="/assistant">
+          <Link href="/agent">
             {collapsed ? (
               <Tooltip>
                 <TooltipTrigger asChild>
