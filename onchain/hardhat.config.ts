@@ -36,6 +36,25 @@ const config: HardhatUserConfig = {
       url: configVariable("SEPOLIA_RPC_URL"),
       accounts: [configVariable("SEPOLIA_PRIVATE_KEY")],
     },
+    base: {
+      type: "http",
+      chainType: "op",
+      url: configVariable("BASE_RPC_URL"),
+      accounts: [configVariable("BASE_PRIVATE_KEY")],
+    },
+    baseSepolia: {
+      type: "http",
+      chainType: "op",
+      url: configVariable("BASE_SEPOLIA_RPC_URL"),
+      accounts: [configVariable("BASE_SEPOLIA_PRIVATE_KEY")],
+    },
+  },
+  verify: {
+    etherscan: {
+      apiKey: configVariable("BASESCAN_API_KEY"),
+      enabled: true,
+      // baseSepolia: configVariable("BASESCAN_API_KEY"),
+    },
   },
 };
 
