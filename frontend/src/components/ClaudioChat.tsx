@@ -7,7 +7,8 @@ import React, { useState, useRef, useEffect } from "react";
 import { usePathname } from "next/navigation";
 
 // wagmi
-import { useAccount } from "wagmi";
+import { useAccount, useConnect } from "wagmi";
+import { injected } from "wagmi/connectors";
 
 // components
 import DashboardHeader from "./DashboardHeader";
@@ -27,7 +28,8 @@ import { useClaudioStore } from "@/stores/claudio.store";
 
 export default function ClaudioChat() {
   const pathname = usePathname();
-  const { address, isConnected } = useAccount();
+  const { address, isConnected, isConnecting } = useAccount();
+  const { connect } = useConnect();
 
   const [showUcsPanel, setShowUcsPanel] = useState(false);
   const [showChat, setShowChat] = useState(false);
@@ -37,6 +39,7 @@ export default function ClaudioChat() {
   const [loading, setLoading] = useState(false);
   const [disabled, setDisabled] = useState(false);
   const [isLoadingHistory, setIsLoadingHistory] = useState(false);
+  const [isInitialized, setIsInitialized] = useState(false);
 
   const {
     messages,
@@ -50,6 +53,15 @@ export default function ClaudioChat() {
     setCaseId,
     setScore,
   } = useClaudioStore();
+
+  // Initialize after a minimum delay to prevent flash
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setIsInitialized(true);
+    }, 800); // Minimum 800ms before showing wallet connection screen
+
+    return () => clearTimeout(timer);
+  }, []);
 
   // Load previous conversation when component mounts or address changes
   useEffect(() => {
@@ -164,7 +176,7 @@ export default function ClaudioChat() {
     };
     addMessage(userMessage);
     setLoading(true);
-    
+
     // Always scroll to bottom when user sends a message
     setIsUserAtBottom(true);
 
@@ -216,7 +228,8 @@ export default function ClaudioChat() {
   // Check if user is at the bottom of the chat
   const checkIfUserAtBottom = () => {
     if (chatContainerRef.current) {
-      const { scrollTop, scrollHeight, clientHeight } = chatContainerRef.current;
+      const { scrollTop, scrollHeight, clientHeight } =
+        chatContainerRef.current;
       const isAtBottom = scrollHeight - scrollTop - clientHeight < 50; // 50px threshold
       setIsUserAtBottom(isAtBottom);
     }
@@ -258,19 +271,30 @@ export default function ClaudioChat() {
     </div>
   );
 
-  // Determine loading message based on state
-  const getLoadingMessage = () => {
-    if (!isConnected) {
-      return "Esperando conexión de wallet...";
-    }
-    if (isLoadingHistory) {
-      return "Cargando conversación anterior...";
-    }
-    return "Inicializando Claudio...";
-  };
+  // Wallet connection component
+  const WalletConnectionScreen = () => (
+    <div className="flex-1 flex flex-col items-center justify-center h-full bg-white">
+      <div className="flex flex-col items-center">
+        <div className="text-6xl mb-6">🔗</div>
+        <h2 className="text-2xl font-bold text-gray-900 mb-4">
+          Conecta tu Wallet
+        </h2>
+        <p className="text-gray-600 mb-8 text-center max-w-md">
+          Para comenzar a chatear con Claudio y generar contratos legales
+          onchain, necesitas conectar tu wallet.
+        </p>
+        <button
+          onClick={() => connect({ connector: injected() })}
+          className="px-8 py-3 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-lg hover:from-blue-700 hover:to-indigo-700 transition-all transform hover:scale-105 font-medium shadow-lg shadow-blue-500/25 cursor-pointer"
+        >
+          🔗 Conectar Wallet
+        </button>
+      </div>
+    </div>
+  );
 
-  // Show loading screen while wallet is connecting or history is loading
-  if (!isConnected || isLoadingHistory) {
+  // Show loading screen while initializing or connecting
+  if (!isInitialized || isConnecting) {
     return (
       <div className="relative w-full h-full font-spectral bg-white flex flex-col">
         <DashboardHeader
@@ -282,7 +306,43 @@ export default function ClaudioChat() {
           }
           showUcsPanel={showUcsPanel}
         />
-        <LoadingScreen message={getLoadingMessage()} />
+        <LoadingScreen message="Inicializando Claudio..." />
+      </div>
+    );
+  }
+
+  // Show wallet connection screen if not connected (only after initialization)
+  if (!isConnected) {
+    return (
+      <div className="relative w-full h-full font-spectral bg-white flex flex-col">
+        <DashboardHeader
+          onNewCase={handleNewCase}
+          onShowAdvanced={
+            pathname === "/agent" || pathname.startsWith("/agent/case/")
+              ? () => setShowUcsPanel((prev) => !prev)
+              : undefined
+          }
+          showUcsPanel={showUcsPanel}
+        />
+        <WalletConnectionScreen />
+      </div>
+    );
+  }
+
+  // Show loading screen while history is loading
+  if (isLoadingHistory) {
+    return (
+      <div className="relative w-full h-full font-spectral bg-white flex flex-col">
+        <DashboardHeader
+          onNewCase={handleNewCase}
+          onShowAdvanced={
+            pathname === "/agent" || pathname.startsWith("/agent/case/")
+              ? () => setShowUcsPanel((prev) => !prev)
+              : undefined
+          }
+          showUcsPanel={showUcsPanel}
+        />
+        <LoadingScreen message="Cargando conversación anterior..." />
       </div>
     );
   }
