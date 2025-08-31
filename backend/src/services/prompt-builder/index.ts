@@ -28,14 +28,14 @@ export class PromptBuilderService {
   public async buildIntakeClaudioPrompt(): Promise<string> {
     let prompt = "";
 
-    const systemPromptPath = join(agentBasePath, "system-prompts/intake.md");
+    const systemPromptPath = join(agentBasePath, "system-prompts/INTAKE.md");
 
     const systemPrompt = this.readFileSafely(systemPromptPath);
     if (systemPrompt) {
       prompt += systemPrompt + "\n\n";
     }
 
-    const responsesPath = join(agentBasePath, "responses/intake.md");
+    const responsesPath = join(agentBasePath, "responses/INTAKE.md");
     const responses = this.readFileSafely(responsesPath);
     if (responses) {
       prompt += responses + "\n\n";

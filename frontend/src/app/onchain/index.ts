@@ -5,6 +5,7 @@ import {
 } from "@wagmi/core";
 import { config } from "../../../config";
 import contractABI from "../../../contract/ClaudioLegalAgreement.json";
+import { keccak256, toBytes } from "viem";
 
 export const CLAUDIO_LEGAL_AGREEMENT_CONTRACT_ADDRESS =
   "0x363203d21835547daebe7f8fc074a20c958b0965";
@@ -20,15 +21,18 @@ export interface Agreement {
 
 export async function getAgreement(caseId: string): Promise<Agreement> {
   try {
+    // Convert caseId to bytes32 hash
+    const caseIdHash = keccak256(toBytes(caseId));
+
     const result = await readContract(config, {
       chainId: 8453,
       address: CLAUDIO_LEGAL_AGREEMENT_CONTRACT_ADDRESS as `0x${string}`,
       abi: contractABI,
       functionName: "getAgreement",
-      args: [caseId],
+      args: [caseIdHash],
     });
 
-    // The contract returns a struct/object, not an array
+    // The contract returns an object with named properties
     const agreement = result as {
       employer: string;
       coworker: string;
@@ -54,12 +58,15 @@ export async function getAgreement(caseId: string): Promise<Agreement> {
 
 export async function signAgreement(caseId: string): Promise<string> {
   try {
+    // Convert caseId to bytes32 hash
+    const caseIdHash = keccak256(toBytes(caseId));
+
     const hash = await writeContract(config, {
       chainId: 8453,
       address: CLAUDIO_LEGAL_AGREEMENT_CONTRACT_ADDRESS as `0x${string}`,
       abi: contractABI,
       functionName: "signAgreement",
-      args: [caseId],
+      args: [caseIdHash],
     });
 
     // Wait for transaction confirmation
@@ -79,12 +86,15 @@ export async function hasSignedAgreement(
   signerAddress: string
 ): Promise<boolean> {
   try {
+    // Convert caseId to bytes32 hash
+    const caseIdHash = keccak256(toBytes(caseId));
+
     const result = await readContract(config, {
       chainId: 8453,
       address: CLAUDIO_LEGAL_AGREEMENT_CONTRACT_ADDRESS as `0x${string}`,
       abi: contractABI,
       functionName: "hasSigned",
-      args: [caseId, signerAddress],
+      args: [caseIdHash, signerAddress],
     });
 
     return result as boolean;
@@ -96,12 +106,15 @@ export async function hasSignedAgreement(
 
 export async function isAgreementCompleted(caseId: string): Promise<boolean> {
   try {
+    // Convert caseId to bytes32 hash
+    const caseIdHash = keccak256(toBytes(caseId));
+
     const result = await readContract(config, {
       chainId: 8453,
       address: CLAUDIO_LEGAL_AGREEMENT_CONTRACT_ADDRESS as `0x${string}`,
       abi: contractABI,
-      functionName: "isCompleted",
-      args: [caseId],
+      functionName: "isFullySigned",
+      args: [caseIdHash],
     });
 
     return result as boolean;

@@ -35,7 +35,7 @@ export const casesController = {
 
       const userAddressToLower = userAddress.toLowerCase();
 
-      const caseId = `case-${userAddressToLower}-${Date.now()}`;
+      const caseId = `case-${Date.now()}`;
 
       await conversationHistoryService.createCase(caseId, userAddressToLower);
 

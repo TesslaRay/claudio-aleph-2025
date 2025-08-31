@@ -67,7 +67,7 @@ export const claudioController = {
 
     if (!finalCaseId) {
       // Create new caseId
-      finalCaseId = `case-${userAddress}-${Date.now()}`;
+      finalCaseId = `case-${Date.now()}`;
 
       // Create the case document in Firestore
       await conversationHistoryService.createCase(

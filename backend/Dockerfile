@@ -19,6 +19,7 @@
     COPY --from=build /app/dist ./dist
     COPY --from=build /app/agent ./agent 
     COPY --from=build /app/src/assets ./src/assets
+    COPY --from=build /app/src/onchain/ClaudioLegalAgreement.json ./dist/onchain/
     
     ENV NODE_ENV=production
     

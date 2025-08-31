@@ -1,7 +1,16 @@
-import { createPublicClient, createWalletClient as viemCreateWalletClient, http } from 'viem';
+import { createPublicClient, createWalletClient as viemCreateWalletClient, http, keccak256, toBytes } from 'viem';
 import { privateKeyToAccount } from 'viem/accounts';
 import { base } from 'viem/chains';
-import { contractABI } from './contractABI.js';
+import { readFileSync } from 'fs';
+import { join, dirname } from 'path';
+import { fileURLToPath } from 'url';
+
+// Load contract ABI at runtime
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
+const contractABI = JSON.parse(
+  readFileSync(join(__dirname, 'ClaudioLegalAgreement.json'), 'utf-8')
+);
 
 export const CLAUDIO_LEGAL_AGREEMENT_CONTRACT_ADDRESS =
   "0x363203d21835547daebe7f8fc074a20c958b0965";
@@ -46,4 +55,4 @@ export const createWalletClient = () => {
   }
 };
 
-export { contractABI };
+export { contractABI, keccak256, toBytes };
