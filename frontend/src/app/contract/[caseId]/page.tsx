@@ -79,8 +79,6 @@ export default function ContractPage() {
     partB?: string;
     employerSigned?: boolean;
     coworkerSigned?: boolean;
-    partASigned?: boolean;
-    partBSigned?: boolean;
     createdAt?: bigint;
     exists?: boolean;
   } | null>(null);
@@ -285,7 +283,8 @@ export default function ContractPage() {
         contractData?.contract.contractType === "joint-venture";
 
       const allSigned = isJointVentureContract
-        ? blockchainAgreement?.partASigned && blockchainAgreement?.partBSigned
+        ? blockchainAgreement?.employerSigned &&
+          blockchainAgreement?.coworkerSigned
         : blockchainAgreement?.employerSigned &&
           blockchainAgreement?.coworkerSigned;
 
@@ -422,6 +421,7 @@ export default function ContractPage() {
   // Get required signers from blockchain and metadata
   const isJointVentureForSigners =
     contractData?.contract.contractType === "joint-venture";
+
   const requiredSigners = contractData?.contract.metadata
     ? isJointVentureForSigners
       ? [
@@ -431,7 +431,7 @@ export default function ContractPage() {
               contractData.contract.metadata.partA_address ||
               contractData.contract.metadata["partA-address"],
             role: "Parte A",
-            signed: blockchainAgreement?.partASigned || false,
+            signed: blockchainAgreement?.employerSigned || false,
           },
           {
             address:
@@ -439,7 +439,7 @@ export default function ContractPage() {
               contractData.contract.metadata.partB_address ||
               contractData.contract.metadata["partB-address"],
             role: "Parte B",
-            signed: blockchainAgreement?.partBSigned || false,
+            signed: blockchainAgreement?.coworkerSigned || false,
           },
         ].filter(
           (signer) =>
@@ -480,7 +480,7 @@ export default function ContractPage() {
   const totalRequiredSignatures = requiredSigners.length || 2;
   const isCompleted = blockchainAgreement
     ? isJointVentureForSigners
-      ? blockchainAgreement.partASigned && blockchainAgreement.partBSigned
+      ? blockchainAgreement.employerSigned && blockchainAgreement.coworkerSigned
       : blockchainAgreement.employerSigned && blockchainAgreement.coworkerSigned
     : completedSignatures >= totalRequiredSignatures;
   const completionPercentage =
@@ -870,7 +870,7 @@ export default function ContractPage() {
 
                                     {blockchainAgreement && (
                                       <p className="text-xs mt-1">
-                                        {blockchainAgreement.partASigned
+                                        {blockchainAgreement.employerSigned
                                           ? "✅ Firmado en blockchain"
                                           : "⏳ Pendiente firma"}
                                       </p>
@@ -898,9 +898,10 @@ export default function ContractPage() {
                                           "partB-address"
                                         ]}
                                     </p>
+
                                     {blockchainAgreement && (
                                       <p className="text-xs mt-1">
-                                        {blockchainAgreement.partBSigned
+                                        {blockchainAgreement.coworkerSigned
                                           ? "✅ Firmado en blockchain"
                                           : "⏳ Pendiente firma"}
                                       </p>
