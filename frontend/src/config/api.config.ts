@@ -1,7 +1,7 @@
 export const apiConfig = {
-  // apiUrl: "http://localhost:3000",
-  apiUrl:
-    "https://claudio-onchain-legal-agent-backend-762249427744.us-central1.run.app",
+  apiUrl: "http://localhost:3000",
+  // apiUrl:
+  // "https://claudio-onchain-legal-agent-backend-762249427744.us-central1.run.app",
 
   endpoints: {
     claudio: {

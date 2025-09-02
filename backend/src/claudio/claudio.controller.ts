@@ -290,6 +290,8 @@ export const claudioController = {
           timestamp: contract.timestamp,
           description: contract.description,
           metadata: contract.metadata,
+          type: contract.type,
+          contractType: contract.contractType,
         },
         case: {
           caseId,

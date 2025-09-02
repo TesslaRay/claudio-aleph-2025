@@ -18,4 +18,5 @@ export interface VaultFile {
   documentType?: string;
   aiConfidence?: number;
   metadata?: any;
+  contractType?: string;
 }

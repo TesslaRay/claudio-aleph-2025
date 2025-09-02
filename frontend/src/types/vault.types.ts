@@ -12,6 +12,7 @@ export interface VaultFile {
   tags?: string[];
   isPublic?: boolean;
   caseId?: string;
+  contractType?: string;
 }
 
 /**

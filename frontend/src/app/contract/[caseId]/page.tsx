@@ -29,9 +29,14 @@ interface Contract {
   size: number;
   timestamp: number;
   description?: string;
+  contractType?: string;
   metadata?: {
     employer_address?: string;
     coworker_address?: string;
+    partA_address?: string;
+    partB_address?: string;
+    contractType?: string;
+    contract_type?: string;
     [key: string]: string | undefined;
   };
 }
@@ -70,9 +75,14 @@ export default function ContractPage() {
   const [blockchainAgreement, setBlockchainAgreement] = useState<{
     employer?: string;
     coworker?: string;
+    partA?: string;
+    partB?: string;
     employerSigned?: boolean;
     coworkerSigned?: boolean;
+    partASigned?: boolean;
+    partBSigned?: boolean;
     createdAt?: bigint;
+    exists?: boolean;
   } | null>(null);
   const [blockchainLoading, setBlockchainLoading] = useState(false);
   const [activities, setActivities] = useState<Activity[]>([]);
@@ -81,7 +91,6 @@ export default function ContractPage() {
   const [activeTab, setActiveTab] = useState<
     "document" | "details" | "history"
   >("document");
-  const [copied, setCopied] = useState(false);
   const [showDisconnect, setShowDisconnect] = useState(false);
   const [copiedWallet, setCopiedWallet] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
@@ -125,8 +134,6 @@ export default function ContractPage() {
       setError(null);
       const response = await claudioService.getContractByCaseId(caseId);
 
-      console.log("Contract response:", response);
-
       if (response.success) {
         setContractData(response);
       } else {
@@ -147,6 +154,8 @@ export default function ContractPage() {
       setBlockchainLoading(true);
       const agreement = await getAgreement(caseId);
       setBlockchainAgreement(agreement);
+
+      console.log("Blockchain agreement:", agreement);
     } catch (err) {
       console.error("Error loading blockchain data:", err);
       // If contract doesn't exist on blockchain, that's okay - it might not be created yet
@@ -240,17 +249,29 @@ export default function ContractPage() {
     try {
       // Sign the agreement on the blockchain
       const txHash = await signAgreement(caseId);
-      console.log("Agreement signed! Transaction hash:", txHash);
 
       // Reload blockchain data to get updated state
       await loadBlockchainData();
 
       // Determine role for activity
-      const userRole =
-        address.toLowerCase() ===
-        contractData?.contract.metadata?.employer_address?.toLowerCase()
-          ? "Empleador"
-          : "Colaborador";
+      const isJointVenture =
+        contractData?.contract.contractType === "joint-venture";
+
+      const userRole = isJointVenture
+        ? address.toLowerCase() ===
+          (
+            contractData?.contract.metadata?.partA_address ||
+            contractData?.contract.metadata?.["partA-address"]
+          )?.toLowerCase()
+          ? "Parte A"
+          : "Parte B"
+        : address.toLowerCase() ===
+          (
+            contractData?.contract.metadata?.employer_address ||
+            contractData?.contract.metadata?.["employer-address"]
+          )?.toLowerCase()
+        ? "Empleador"
+        : "Colaborador";
 
       // Add activity
       addActivity(
@@ -260,11 +281,15 @@ export default function ContractPage() {
       );
 
       // Check if contract is now completed
-      if (
-        blockchainAgreement &&
-        blockchainAgreement.employerSigned &&
-        blockchainAgreement.coworkerSigned
-      ) {
+      const isJointVentureContract =
+        contractData?.contract.contractType === "joint-venture";
+
+      const allSigned = isJointVentureContract
+        ? blockchainAgreement?.partASigned && blockchainAgreement?.partBSigned
+        : blockchainAgreement?.employerSigned &&
+          blockchainAgreement?.coworkerSigned;
+
+      if (blockchainAgreement && allSigned) {
         setTimeout(() => {
           addActivity(
             "completed",
@@ -279,12 +304,6 @@ export default function ContractPage() {
     } finally {
       setSigning(false);
     }
-  };
-
-  const handleCopyLink = () => {
-    navigator.clipboard.writeText(window.location.href);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
   };
 
   const copyWalletToClipboard = async (text: string) => {
@@ -357,37 +376,96 @@ export default function ContractPage() {
     }
   };
 
-  // Check if current user is authorized (employer or coworker)
-  const isAuthorizedUser =
-    address &&
+  // Check if current user is authorized (employer, coworker, partA, or partB)
+  const isJointVenture =
+    contractData?.contract.contractType === "joint-venture";
+
+  // For backwards compatibility, if there's no metadata or no addresses specified,
+  // allow access (this might be an old contract without proper metadata)
+  const hasMetadataAddresses =
     contractData?.contract.metadata &&
-    (address.toLowerCase() ===
-      contractData.contract.metadata.employer_address?.toLowerCase() ||
-      address.toLowerCase() ===
-        contractData.contract.metadata.coworker_address?.toLowerCase());
+    (contractData.contract.metadata.employer_address ||
+      contractData.contract.metadata["employer-address"] ||
+      contractData.contract.metadata.coworker_address ||
+      contractData.contract.metadata["coworker-address"] ||
+      contractData.contract.metadata.partA_address ||
+      contractData.contract.metadata["partA-address"] ||
+      contractData.contract.metadata.partB_address ||
+      contractData.contract.metadata["partB-address"]);
+
+  const isAuthorizedUser =
+    !hasMetadataAddresses || // If no addresses in metadata, allow access
+    (address &&
+      contractData?.contract.metadata &&
+      (isJointVenture
+        ? address.toLowerCase() ===
+            (
+              contractData.contract.metadata.partA_address ||
+              contractData.contract.metadata["partA-address"]
+            )?.toLowerCase() ||
+          address.toLowerCase() ===
+            (
+              contractData.contract.metadata.partB_address ||
+              contractData.contract.metadata["partB-address"]
+            )?.toLowerCase()
+        : address.toLowerCase() ===
+            (
+              contractData.contract.metadata.employer_address ||
+              contractData.contract.metadata["employer-address"]
+            )?.toLowerCase() ||
+          address.toLowerCase() ===
+            (
+              contractData.contract.metadata.coworker_address ||
+              contractData.contract.metadata["coworker-address"]
+            )?.toLowerCase()));
 
   // Get required signers from blockchain and metadata
+  const isJointVentureForSigners =
+    contractData?.contract.contractType === "joint-venture";
   const requiredSigners = contractData?.contract.metadata
-    ? [
-        {
-          address:
-            blockchainAgreement?.employer ||
-            contractData.contract.metadata.employer_address,
-          role: "Empleador",
-          signed: blockchainAgreement?.employerSigned || false,
-        },
-        {
-          address:
-            blockchainAgreement?.coworker ||
-            contractData.contract.metadata.coworker_address,
-          role: "Colaborador",
-          signed: blockchainAgreement?.coworkerSigned || false,
-        },
-      ].filter(
-        (signer) =>
-          signer.address &&
-          signer.address !== "0x0000000000000000000000000000000000000000"
-      )
+    ? isJointVentureForSigners
+      ? [
+          {
+            address:
+              blockchainAgreement?.partA ||
+              contractData.contract.metadata.partA_address ||
+              contractData.contract.metadata["partA-address"],
+            role: "Parte A",
+            signed: blockchainAgreement?.partASigned || false,
+          },
+          {
+            address:
+              blockchainAgreement?.partB ||
+              contractData.contract.metadata.partB_address ||
+              contractData.contract.metadata["partB-address"],
+            role: "Parte B",
+            signed: blockchainAgreement?.partBSigned || false,
+          },
+        ].filter(
+          (signer) =>
+            signer.address &&
+            signer.address !== "0x0000000000000000000000000000000000000000"
+        )
+      : [
+          {
+            address:
+              blockchainAgreement?.employer ||
+              contractData.contract.metadata.employer_address,
+            role: "Empleador",
+            signed: blockchainAgreement?.employerSigned || false,
+          },
+          {
+            address:
+              blockchainAgreement?.coworker ||
+              contractData.contract.metadata.coworker_address,
+            role: "Colaborador",
+            signed: blockchainAgreement?.coworkerSigned || false,
+          },
+        ].filter(
+          (signer) =>
+            signer.address &&
+            signer.address !== "0x0000000000000000000000000000000000000000"
+        )
     : [];
 
   const isUserSigned =
@@ -401,7 +479,9 @@ export default function ContractPage() {
   ).length;
   const totalRequiredSignatures = requiredSigners.length || 2;
   const isCompleted = blockchainAgreement
-    ? blockchainAgreement.employerSigned && blockchainAgreement.coworkerSigned
+    ? isJointVentureForSigners
+      ? blockchainAgreement.partASigned && blockchainAgreement.partBSigned
+      : blockchainAgreement.employerSigned && blockchainAgreement.coworkerSigned
     : completedSignatures >= totalRequiredSignatures;
   const completionPercentage =
     totalRequiredSignatures > 0
@@ -450,6 +530,7 @@ export default function ContractPage() {
           <h1 className="text-2xl font-bold text-gray-900 mb-2">
             Acceso no autorizado
           </h1>
+
           <p className="text-gray-600 mb-4">
             Solo las partes autorizadas pueden acceder a este contrato.
           </p>
@@ -596,22 +677,17 @@ export default function ContractPage() {
           <div className="flex items-start justify-between">
             <div>
               <h1 className="text-3xl font-bold text-gray-900">
-                Contrato de Prestación de Servicios
+                {contractData?.contract.contractType === "joint-venture"
+                  ? "Contrato de Joint Venture"
+                  : "Contrato de Prestación de Servicios"}
               </h1>
+
               <p className="mt-1 text-gray-500">
                 Caso ID: <span className="font-mono text-sm">{caseId}</span>
               </p>
             </div>
+
             <div className="flex items-center space-x-3">
-              <button
-                onClick={handleCopyLink}
-                className="px-4 py-2 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors flex items-center space-x-2 cursor-pointer"
-              >
-                <span>{copied ? "✅" : "🔗"}</span>
-                <span className="text-sm font-medium">
-                  {copied ? "Copiado!" : "Compartir"}
-                </span>
-              </button>
               <a
                 href={contractData.contract.url}
                 target="_blank"
@@ -619,7 +695,7 @@ export default function ContractPage() {
                 className="px-4 py-2 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors flex items-center space-x-2 cursor-pointer"
               >
                 <span>⬇️</span>
-                <span className="text-sm font-medium">Descargar PDF</span>
+                <span className="text-sm font-medium">Descargar Contrato</span>
               </a>
             </div>
           </div>
@@ -630,6 +706,7 @@ export default function ContractPage() {
               <span className="text-sm font-medium text-gray-700">
                 Progreso de firmas
               </span>
+
               <span className="text-sm font-bold text-blue-600">
                 {completionPercentage}%
               </span>
@@ -767,57 +844,130 @@ export default function ContractPage() {
                       <h4 className="font-semibold text-gray-900">
                         Partes del Contrato
                       </h4>
-                      <div className="grid grid-cols-1 gap-4">
-                        {contractData.contract.metadata.employer_address && (
-                          <div className="p-4 bg-blue-50 rounded-lg border border-blue-200">
-                            <div className="flex items-center justify-between">
-                              <div>
-                                <p className="text-sm text-blue-600 mb-1">
-                                  Empleador
-                                </p>
-                                <p className="font-medium text-gray-900 font-mono text-sm">
-                                  {
-                                    contractData.contract.metadata
-                                      .employer_address
-                                  }
-                                </p>
-                                {blockchainAgreement && (
-                                  <p className="text-xs mt-1">
-                                    {blockchainAgreement.employerSigned
-                                      ? "✅ Firmado en blockchain"
-                                      : "⏳ Pendiente firma"}
-                                  </p>
-                                )}
-                              </div>
-                              <div className="text-blue-600">💼</div>
-                            </div>
-                          </div>
-                        )}
 
-                        {contractData.contract.metadata.coworker_address && (
-                          <div className="p-4 bg-green-50 rounded-lg border border-green-200">
-                            <div className="flex items-center justify-between">
-                              <div>
-                                <p className="text-sm text-green-600 mb-1">
-                                  Colaborador
-                                </p>
-                                <p className="font-medium text-gray-900 font-mono text-sm">
-                                  {
-                                    contractData.contract.metadata
-                                      .coworker_address
-                                  }
-                                </p>
-                                {blockchainAgreement && (
-                                  <p className="text-xs mt-1">
-                                    {blockchainAgreement.coworkerSigned
-                                      ? "✅ Firmado en blockchain"
-                                      : "⏳ Pendiente firma"}
-                                  </p>
-                                )}
+                      <div className="grid grid-cols-1 gap-4">
+                        {/* Join Venture Parties */}
+                        {contractData.contract.contractType ===
+                        "joint-venture" ? (
+                          <>
+                            {(contractData.contract.metadata.partA_address ||
+                              contractData.contract.metadata[
+                                "partA-address"
+                              ]) && (
+                              <div className="p-4 bg-purple-50 rounded-lg border border-purple-200">
+                                <div className="flex items-center justify-between">
+                                  <div>
+                                    <p className="text-sm text-purple-600 mb-1">
+                                      Parte A
+                                    </p>
+                                    <p className="font-medium text-gray-900 font-mono text-sm">
+                                      {contractData.contract.metadata
+                                        .partA_address ||
+                                        contractData.contract.metadata[
+                                          "partA-address"
+                                        ]}
+                                    </p>
+
+                                    {blockchainAgreement && (
+                                      <p className="text-xs mt-1">
+                                        {blockchainAgreement.partASigned
+                                          ? "✅ Firmado en blockchain"
+                                          : "⏳ Pendiente firma"}
+                                      </p>
+                                    )}
+                                  </div>
+                                  <div className="text-purple-600">🤝</div>
+                                </div>
                               </div>
-                              <div className="text-green-600">👤</div>
-                            </div>
-                          </div>
+                            )}
+
+                            {(contractData.contract.metadata.partB_address ||
+                              contractData.contract.metadata[
+                                "partB-address"
+                              ]) && (
+                              <div className="p-4 bg-orange-50 rounded-lg border border-orange-200">
+                                <div className="flex items-center justify-between">
+                                  <div>
+                                    <p className="text-sm text-orange-600 mb-1">
+                                      Parte B
+                                    </p>
+                                    <p className="font-medium text-gray-900 font-mono text-sm">
+                                      {contractData.contract.metadata
+                                        .partB_address ||
+                                        contractData.contract.metadata[
+                                          "partB-address"
+                                        ]}
+                                    </p>
+                                    {blockchainAgreement && (
+                                      <p className="text-xs mt-1">
+                                        {blockchainAgreement.partBSigned
+                                          ? "✅ Firmado en blockchain"
+                                          : "⏳ Pendiente firma"}
+                                      </p>
+                                    )}
+                                  </div>
+                                  <div className="text-orange-600">🤝</div>
+                                </div>
+                              </div>
+                            )}
+                          </>
+                        ) : (
+                          <>
+                            {/* Employment Contract Parties */}
+                            {contractData.contract.metadata
+                              .employer_address && (
+                              <div className="p-4 bg-blue-50 rounded-lg border border-blue-200">
+                                <div className="flex items-center justify-between">
+                                  <div>
+                                    <p className="text-sm text-blue-600 mb-1">
+                                      Empleador
+                                    </p>
+                                    <p className="font-medium text-gray-900 font-mono text-sm">
+                                      {
+                                        contractData.contract.metadata
+                                          .employer_address
+                                      }
+                                    </p>
+                                    {blockchainAgreement && (
+                                      <p className="text-xs mt-1">
+                                        {blockchainAgreement.employerSigned
+                                          ? "✅ Firmado en blockchain"
+                                          : "⏳ Pendiente firma"}
+                                      </p>
+                                    )}
+                                  </div>
+                                  <div className="text-blue-600">💼</div>
+                                </div>
+                              </div>
+                            )}
+
+                            {contractData.contract.metadata
+                              .coworker_address && (
+                              <div className="p-4 bg-green-50 rounded-lg border border-green-200">
+                                <div className="flex items-center justify-between">
+                                  <div>
+                                    <p className="text-sm text-green-600 mb-1">
+                                      Colaborador
+                                    </p>
+                                    <p className="font-medium text-gray-900 font-mono text-sm">
+                                      {
+                                        contractData.contract.metadata
+                                          .coworker_address
+                                      }
+                                    </p>
+                                    {blockchainAgreement && (
+                                      <p className="text-xs mt-1">
+                                        {blockchainAgreement.coworkerSigned
+                                          ? "✅ Firmado en blockchain"
+                                          : "⏳ Pendiente firma"}
+                                      </p>
+                                    )}
+                                  </div>
+                                  <div className="text-green-600">👤</div>
+                                </div>
+                              </div>
+                            )}
+                          </>
                         )}
                       </div>
                     </div>
@@ -834,25 +984,31 @@ export default function ContractPage() {
                       </div>
                     </div>
                   ) : blockchainAgreement ? (
-                    <div className="p-4 bg-indigo-50 rounded-lg border border-indigo-200">
+                    <div className="space-y-4">
                       <h4 className="font-semibold text-indigo-900 mb-2">
                         Estado en Blockchain
                       </h4>
-                      <div className="space-y-1 text-sm">
-                        <p className="text-indigo-700">
-                          ✅ Contrato encontrado en blockchain
-                        </p>
-                        <p className="text-indigo-700">
-                          📅 Creado:{" "}
-                          {new Date(
-                            Number(blockchainAgreement.createdAt) * 1000
-                          ).toLocaleDateString()}
-                        </p>
-                        <p className="text-indigo-700">
-                          📋 Estado:{" "}
-                          {isCompleted ? "Completado" : "Pendiente firmas"}
-                        </p>
-                      </div>
+
+                      {blockchainAgreement.exists ? (
+                        <div className="space-y-1 text-sm">
+                          <p className="text-indigo-700">
+                            ✅ Contrato encontrado en blockchain
+                          </p>
+
+                          <p className="text-indigo-700">
+                            📅 Creado:{" "}
+                            {new Date(
+                              Number(blockchainAgreement.createdAt) * 1000
+                            ).toLocaleDateString()}
+                          </p>
+                          <p className="text-indigo-700">
+                            📋 Estado:{" "}
+                            {isCompleted ? "Completado" : "Pendiente firmas"}
+                          </p>
+                        </div>
+                      ) : (
+                        "❌ Contrato no encontrado en blockchain"
+                      )}
                     </div>
                   ) : (
                     <div className="p-4 bg-yellow-50 rounded-lg border border-yellow-200">
@@ -981,6 +1137,7 @@ export default function ContractPage() {
                   <h4 className="font-medium text-gray-900 mb-1">
                     Firmantes ({completedSignatures}/{totalRequiredSignatures})
                   </h4>
+
                   <p className="text-xs text-gray-500">
                     Se requieren {totalRequiredSignatures} firmas para completar
                   </p>
@@ -1007,6 +1164,7 @@ export default function ContractPage() {
                               {signer.signed ? "✓" : "○"}
                             </span>
                           </div>
+
                           <div>
                             <p
                               className={`font-medium text-sm ${
@@ -1058,6 +1216,7 @@ export default function ContractPage() {
                         <p className="font-semibold text-green-800">
                           Documento Completado
                         </p>
+
                         <p className="text-xs text-green-600">
                           Todas las firmas han sido recolectadas
                         </p>
